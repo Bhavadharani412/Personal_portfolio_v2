@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Navbar } from "./components/Navbar";
 import { Hero } from "./components/Hero";
 import { AboutMe } from "./components/AboutMe";
@@ -12,12 +12,19 @@ import { Skills } from "./components/Skills";
 import { Contact } from "./components/Contact";
 import { Chatbot } from "./components/Chatbot";
 import { Footer } from "./components/Footer";
+import { trackEvent, getAttributionData } from "./utils/analytics";
 
 type View = "portfolio" | "all-projects" | "all-blogs";
 
 export default function App() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [view, setView] = useState<View>("portfolio");
+
+  useEffect(() => {
+    // Initialize attribution and send page_view event on load/view change
+    const attribution = getAttributionData();
+    trackEvent("page_view", { view, source: attribution.source });
+  }, [view]);
 
   const handleOpenChat = () => {
     setIsChatOpen(true);
@@ -48,7 +55,6 @@ export default function App() {
     setView("portfolio");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
 
   return (
     <div className="min-h-screen bg-[#F7F5EE] text-[#102A36] selection:bg-[#F4C928]/35 selection:text-[#102A36]">

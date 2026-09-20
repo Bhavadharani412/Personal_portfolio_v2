@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "personal-portfolio-api",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-03-01",
+  "observability": {
+    "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "portfolio_db",
+      "database_id": "local-portfolio-d1"
+    }
+  ],
+  "vars": {
+    "ALLOWED_ORIGINS": "*",
+    "RATE_LIMIT_PER_MINUTE": "10"
+  }
+}

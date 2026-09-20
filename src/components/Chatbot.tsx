@@ -1,20 +1,125 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Sparkles, X, Send, CornerDownLeft, RotateCcw, MessageSquare } from "lucide-react";
+import { Sparkles, X, Send, RotateCcw } from "lucide-react";
 import { ChatMessage } from "../types";
+import { getOrCreateSessionId, trackEvent } from "../utils/analytics";
 
 interface ChatbotProps {
   isOpen: boolean;
   onToggle: () => void;
 }
 
+const renderInlineFormatting = (text: string): React.ReactNode[] => {
+  const regex = /(\*\*(.*?)\*\*|`([^`]+)`|\[([^\]]+)\]\(([^)]+)\))/g;
+  const elements: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      elements.push(text.substring(lastIndex, match.index));
+    }
+
+    if (match[2] !== undefined) {
+      elements.push(
+        <strong key={match.index} className="font-bold text-[#102A36]">
+          {match[2]}
+        </strong>
+      );
+    } else if (match[3] !== undefined) {
+      elements.push(
+        <code key={match.index} className="font-mono bg-black/5 px-1 py-0.5 rounded text-[11px]">
+          {match[3]}
+        </code>
+      );
+    } else if (match[4] !== undefined && match[5] !== undefined) {
+      elements.push(
+        <a
+          key={match.index}
+          href={match[5]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#1268A3] underline hover:opacity-80"
+        >
+          {match[4]}
+        </a>
+      );
+    }
+
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    elements.push(text.substring(lastIndex));
+  }
+
+  return elements.length > 0 ? elements : [text];
+};
+
+export const FormattedChatMessage: React.FC<{ text: string }> = ({ text }) => {
+  if (!text) return null;
+
+  const normalized = text.replace(/\r\n/g, "\n").replace(/\u2011/g, "-");
+  const paragraphs = normalized.split(/\n\n+/);
+
+  return (
+    <div className="space-y-2 leading-relaxed">
+      {paragraphs.map((para, pIdx) => {
+        const lines = para.split("\n").filter((l) => l.trim().length > 0);
+        const isList = lines.length > 0 && lines.every((l) => /^\s*[\-\*\•\d\.]+\s+/.test(l));
+
+        if (isList) {
+          return (
+            <ul key={pIdx} className="space-y-1.5 my-1">
+              {lines.map((line, lIdx) => {
+                const cleanLine = line.replace(/^\s*[\-\*\•\d\.]+\s+/, "");
+                return (
+                  <li key={lIdx} className="flex items-start gap-1.5 text-xs">
+                    <span className="text-[#1268A3] font-bold select-none">•</span>
+                    <span className="flex-1">{renderInlineFormatting(cleanLine)}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          );
+        }
+
+        return (
+          <div key={pIdx} className="space-y-1">
+            {lines.map((line, lIdx) => {
+              const bulletMatch = line.match(/^\s*[\-\*\•]\s+(.*)/);
+              if (bulletMatch) {
+                return (
+                  <div key={lIdx} className="flex items-start gap-1.5 ml-1 my-0.5">
+                    <span className="text-[#1268A3] font-bold select-none">•</span>
+                    <span className="flex-1">{renderInlineFormatting(bulletMatch[1])}</span>
+                  </div>
+                );
+              }
+
+              return (
+                <div key={lIdx} className={lines.length > 1 ? "mb-1" : ""}>
+                  {renderInlineFormatting(line)}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
   const [inputMessage, setInputMessage] = useState("");
+  const [chatSessionId, setChatSessionId] = useState<string>(
+    () => `cs_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
+  );
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "init-1",
       role: "assistant",
-      text: "Hello! I am **Bhava 2.0**, Bhavadharani's conversational digital twin. Ask me about my backend architectures, projects like Dev Explain AI, open-source work, or engineering journey.",
+      text: "Hello! I am **Bhava 2.0**, Bhavadharani's conversational digital twin. Ask me about backend architectures, projects like Dev Explain AI, open-source work, or engineering journey.",
       timestamp: "Just now",
     },
   ]);
@@ -35,6 +140,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
   useEffect(() => {
     if (isOpen) {
       scrollToBottom();
+      trackEvent("chat_started", { chat_session_id: chatSessionId });
     }
   }, [messages, isOpen]);
 
@@ -42,13 +148,14 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
     const message = textToSend || inputMessage;
     if (!message.trim() || isLoading) return;
 
+    const trimmedMsg = message.trim();
     const userMessageId = `user-${Date.now()}`;
     const newMessages: ChatMessage[] = [
       ...messages,
       {
         id: userMessageId,
         role: "user",
-        text: message.trim(),
+        text: trimmedMsg,
         timestamp: "Now",
       },
     ];
@@ -57,22 +164,48 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
     setInputMessage("");
     setIsLoading(true);
 
+    const sessionId = getOrCreateSessionId();
+    trackEvent("chat_message", { chat_session_id: chatSessionId, message_length: trimmedMsg.length });
+
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: message.trim(),
-          history: newMessages.map((m) => ({ role: m.role, text: m.text })),
+          message: trimmedMsg,
+          session_id: sessionId,
+          chat_session_id: chatSessionId,
+          history: newMessages.slice(-6).map((m) => ({ role: m.role, text: m.text })),
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Chat API error: ${response.status}`);
+      const data = await response.json();
+
+      if (response.status === 429) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `bot-${Date.now()}`,
+            role: "assistant",
+            text: "I've hit a temporary limit. Please wait a moment before asking another question.",
+            timestamp: "Just now",
+          },
+        ]);
+        return;
       }
 
-      const data = await response.json();
-      const replyText = data.reply || "I'm exploring that right now! Feel free to ask about Dev Explain AI or my tech stack.";
+      if (!response.ok) {
+        throw new Error(data.error || `Server error: ${response.status}`);
+      }
+
+      const replyText =
+        data.reply && data.reply.trim()
+          ? data.reply
+          : "I don't have that information available right now.";
+
+      if (data.chat_session_id) {
+        setChatSessionId(data.chat_session_id);
+      }
 
       setMessages((prev) => [
         ...prev,
@@ -83,21 +216,36 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
           timestamp: "Just now",
         },
       ]);
+
+      trackEvent("chat_response", { chat_session_id: chatSessionId, status: "success" });
     } catch (err) {
-      console.error("Chat error:", err);
-      // Graceful answer
+      console.error("Chat API call failed:", err);
       setMessages((prev) => [
         ...prev,
         {
           id: `bot-${Date.now()}`,
           role: "assistant",
-          text: "I build backend systems with Python, Java, and TypeScript, focusing on developer productivity tools like Dev Explain AI and practical AI grounding. Feel free to ask about my journey from B.Tech IT to McKinsey Forward!",
+          text: "I'm temporarily unavailable. Please try asking again in a moment.",
           timestamp: "Just now",
         },
       ]);
+      trackEvent("chat_response", { chat_session_id: chatSessionId, status: "error" });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleResetChat = () => {
+    const newChatId = `cs_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    setChatSessionId(newChatId);
+    setMessages([
+      {
+        id: "init-reset",
+        role: "assistant",
+        text: "Context refreshed. What would you like to know about Bhavadharani's software engineering background?",
+        timestamp: "Just now",
+      },
+    ]);
   };
 
   return (
@@ -134,16 +282,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
               <div className="flex items-center gap-1">
                 <button
                   id="reset-chat-btn"
-                  onClick={() =>
-                    setMessages([
-                      {
-                        id: "init-reset",
-                        role: "assistant",
-                        text: "Context refreshed. What would you like to know about Bhavadharani's software engineering background?",
-                        timestamp: "Just now",
-                      },
-                    ])
-                  }
+                  onClick={handleResetChat}
                   className="p-1.5 rounded-full hover:bg-white/10 text-white/80 hover:text-white transition-colors"
                   title="Reset conversation"
                   aria-label="Reset Conversation"
@@ -177,9 +316,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
                           : "bg-[#FFFDF7] text-[#102A36] border border-[#D9DDD7] rounded-bl-xs shadow-2xs"
                       }`}
                     >
-                      <div className="whitespace-pre-line break-words">
-                        {msg.text}
-                      </div>
+                      <FormattedChatMessage text={msg.text} />
                     </div>
                   </div>
                 );
@@ -198,7 +335,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Suggested Questions Quick Carousel */}
+            {/* Suggested Questions Carousel */}
             <div className="p-2.5 bg-[#FFFDF7] border-t border-[#D9DDD7]/80 flex gap-1.5 overflow-x-auto no-scrollbar">
               {suggestedQuestions.map((q) => (
                 <button
@@ -213,7 +350,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
               ))}
             </div>
 
-            {/* Input Footer */}
+            {/* Input Form */}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -244,17 +381,17 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
         )}
       </AnimatePresence>
 
-      {/* Collapsed State: Small Blue Interaction Button */}
+      {/* Collapsed State Trigger */}
       <motion.button
         id="chatbot-collapsed-trigger"
         onClick={onToggle}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="group flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#1268A3] hover:bg-[#2388C5] text-white shadow-[0_6px_20px_rgba(18,104,163,0.35)] transition-all font-medium text-xs sm:text-sm tracking-wide"
+        className="group flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#1268A3] hover:bg-[#2388C5] text-white shadow-[0_6px_20px_rgba(18,104,163,0.35)] transition-all font-semibold text-xs sm:text-sm tracking-wide"
         aria-label="Toggle Bhava 2.0 Chatbot"
       >
         <Sparkles className="w-4 h-4 text-[#FFD84A] group-hover:rotate-12 transition-transform" />
-        <span className="font-semibold">✦ Bhava 2.0</span>
+        <span>✦ Bhava 2.0</span>
       </motion.button>
     </div>
   );
