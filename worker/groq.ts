@@ -66,7 +66,8 @@ export async function callGroqLLM(
   apiKey: string | undefined,
   userMessage: string,
   evidence: string | null,
-  history: ChatHistoryTurn[] = []
+  history: ChatHistoryTurn[] = [],
+  modelName: string = process.env.GROQ_MODEL || "openai/gpt-oss-20b"
 ): Promise<{ reply: string; latency_ms: number; status: "success" | "fallback" | "error" }> {
   const startTime = Date.now();
 
@@ -110,7 +111,7 @@ export async function callGroqLLM(
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "groq/compound-mini",
+        model: modelName,
         messages: [
           { role: "system", content: GROQ_SYSTEM_PROMPT },
           { role: "user", content: `Context:\n${evidence}\n\nUser Question: ${userMessage}` },

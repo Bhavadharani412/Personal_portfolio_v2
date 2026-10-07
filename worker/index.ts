@@ -158,7 +158,7 @@ export default {
         const evidence = retrievalResult?.evidence || null;
 
         // Call Groq safely
-        const groqResult = await callGroqLLM(env.GROQ_API_KEY, message, evidence, body.history);
+        const groqResult = await callGroqLLM(env.GROQ_API_KEY, message, evidence, body.history, env.GROQ_MODEL);
 
         // Record user query and response in D1 non-blockingly
         const recordUserMsg = recordChatMessageInD1(env.DB, sessionId, chatSessionId, "user", message, 0, "success");

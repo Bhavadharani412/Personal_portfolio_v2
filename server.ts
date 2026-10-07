@@ -17,6 +17,7 @@ app.use(express.json());
 
 const workerEnv: Env = {
   GROQ_API_KEY: process.env.GROQ_API_KEY,
+  GROQ_MODEL: process.env.GROQ_MODEL || "openai/gpt-oss-20b",
   ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS || "*",
   RATE_LIMIT_PER_MINUTE: process.env.RATE_LIMIT_PER_MINUTE || "10",
 };

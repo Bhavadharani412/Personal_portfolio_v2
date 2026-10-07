@@ -33,6 +33,7 @@ export interface D1ExecResult {
 export interface Env {
   DB?: D1Database;
   GROQ_API_KEY?: string;
+  GROQ_MODEL?: string;
   ALLOWED_ORIGINS?: string;
   RATE_LIMIT_PER_MINUTE?: string;
 }
