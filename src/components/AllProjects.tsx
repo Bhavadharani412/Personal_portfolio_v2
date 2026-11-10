@@ -12,8 +12,8 @@ export const AllProjects: React.FC<AllProjectsProps> = ({ onBack }) => {
   return (
     <section
       id="all-projects"
-      aria-label="All Projects"
-      className="py-24 px-4 sm:px-6 max-w-6xl mx-auto border-t border-[#D9DDD7]/80"
+      aria-label="All Works"
+      className="py-28 px-4 sm:px-6 max-w-6xl mx-auto"
     >
       {/* Back navigation */}
       <motion.div
@@ -25,7 +25,7 @@ export const AllProjects: React.FC<AllProjectsProps> = ({ onBack }) => {
         <button
           id="all-projects-back-btn"
           onClick={onBack}
-          className="group inline-flex items-center gap-2 text-sm font-medium text-[#61727A] hover:text-[#102A36] transition-colors"
+          className="group inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FFFDF8] border border-[#E4DFD3] text-xs font-mono font-semibold text-[#1F211F] hover:border-[#EFB323] transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
           <span>Back to Portfolio</span>
@@ -34,19 +34,22 @@ export const AllProjects: React.FC<AllProjectsProps> = ({ onBack }) => {
 
       {/* Section Header */}
       <div className="mb-12">
+        <span className="text-[11px] font-mono tracking-[0.14em] uppercase text-[#174F91] font-semibold">
+          COMPLETE ARCHIVE // {PROJECTS_DATA.length} SYSTEMS
+        </span>
         <h2
-          className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#102A36]"
+          className="mt-2 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#1F211F]"
           style={{ fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" }}
         >
-          ALL PROJECTS
+          ALL WORKS
         </h2>
-        <p className="mt-3 text-sm sm:text-base text-[#61727A] max-w-xl">
-          Every project I've built — from developer tools and AI backends to community platforms and portfolio systems.
+        <p className="mt-3 text-sm sm:text-base text-[#5C5F5B] max-w-xl">
+          Every project I've built — from developer tools and AI backends to distributed collaboration and learning systems.
         </p>
       </div>
 
       {/* All projects grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
         {PROJECTS_DATA.map((project, index) => (
           <ProjectCard key={project.id} project={project} index={index} />
         ))}

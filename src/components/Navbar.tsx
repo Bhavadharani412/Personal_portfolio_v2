@@ -6,17 +6,18 @@ interface NavbarProps {
   onOpenChat: () => void;
 }
 
+type NavTab = "HOME" | "ABOUT" | "JOURNEY" | "WORKS" | "BLOGS" | "OPEN SOURCE" | "SKILLS" | "CONTACT";
+
 export const Navbar: React.FC<NavbarProps> = ({ onOpenChat }) => {
-  const [activeTab, setActiveTab] = useState<"HOME" | "ABOUT" | "JOURNEY" | "WORKS" | "CONTACT">("HOME");
+  const [activeTab, setActiveTab] = useState<NavTab>("HOME");
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
-      setIsScrolled(scrollY > 40);
+      setIsScrolled(scrollY > 36);
 
-      const heroEl = document.getElementById("home");
       const aboutEl = document.getElementById("about");
       const journeyEl = document.getElementById("journey");
       const projectsEl = document.getElementById("projects");
@@ -25,8 +26,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenChat }) => {
       const skillsEl = document.getElementById("skills");
       const contactEl = document.getElementById("contact");
 
-      const threshold = window.innerHeight * 0.35;
-
+      const threshold = window.innerHeight * 0.36;
       const getTop = (el: HTMLElement | null) => (el ? el.getBoundingClientRect().top : Infinity);
 
       const aboutTop = getTop(aboutEl);
@@ -37,15 +37,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenChat }) => {
       const skillsTop = getTop(skillsEl);
       const contactTop = getTop(contactEl);
 
-      // Contact is active when near bottom or contact reached
-      if (contactTop <= threshold || (window.innerHeight + window.scrollY) >= document.body.offsetHeight - 80) {
+      if (contactTop <= threshold || window.innerHeight + window.scrollY >= document.body.offsetHeight - 80) {
         setActiveTab("CONTACT");
-      } else if (
-        projectsTop <= threshold ||
-        blogsTop <= threshold ||
-        openSourceTop <= threshold ||
-        skillsTop <= threshold
-      ) {
+      } else if (skillsTop <= threshold) {
+        setActiveTab("SKILLS");
+      } else if (openSourceTop <= threshold) {
+        setActiveTab("OPEN SOURCE");
+      } else if (blogsTop <= threshold) {
+        setActiveTab("BLOGS");
+      } else if (projectsTop <= threshold) {
         setActiveTab("WORKS");
       } else if (journeyTop <= threshold) {
         setActiveTab("JOURNEY");
@@ -66,57 +66,67 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenChat }) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
-  const navItems: { label: "HOME" | "ABOUT" | "JOURNEY" | "WORKS" | "CONTACT"; targetId: string }[] = [
+  const navItems: { label: NavTab; targetId: string }[] = [
     { label: "HOME", targetId: "home" },
     { label: "ABOUT", targetId: "about" },
     { label: "JOURNEY", targetId: "journey" },
     { label: "WORKS", targetId: "projects" },
+    { label: "BLOGS", targetId: "blogs" },
+    { label: "OPEN SOURCE", targetId: "open-source" },
+    { label: "SKILLS", targetId: "skills" },
     { label: "CONTACT", targetId: "contact" },
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 flex justify-center px-4 py-3 sm:py-5 transition-all duration-300">
+    <header className="fixed top-0 left-0 right-0 z-50 flex justify-center px-3 sm:px-6 py-3 sm:py-4 transition-all duration-300 pointer-events-none">
       <nav
         id="desktop-navbar"
         aria-label="Main Navigation"
-        className={`flex items-center justify-between gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full border transition-all duration-300 ${
+        className={`pointer-events-auto flex items-center justify-between gap-1 sm:gap-2 px-3 sm:px-4 py-2 rounded-full border transition-all duration-300 max-w-6xl w-full lg:w-auto ${
           isScrolled
-            ? "bg-[#FFFDF7]/90 backdrop-blur-md border-[#D9DDD7] shadow-[0_4px_24px_rgba(16,42,54,0.06)]"
-            : "bg-[#FFFDF7]/70 backdrop-blur-sm border-[#D9DDD7]/80"
+            ? "bg-[#FFFDF8]/92 backdrop-blur-md border-[#E4DFD3] shadow-[0_10px_32px_rgba(31,33,31,0.07)]"
+            : "bg-[#FFFDF8]/80 backdrop-blur-sm border-[#E4DFD3]/90 shadow-[0_4px_20px_rgba(31,33,31,0.03)]"
         }`}
       >
-        {/* Brand identity touch on mobile/left */}
+        {/* Brand identity */}
         <button
           id="nav-brand-button"
           onClick={() => scrollTo("home")}
-          className="mr-2 sm:mr-3 flex items-center gap-1.5 px-2.5 py-1 text-left group"
+          className="mr-1 sm:mr-3 flex items-center gap-2 px-2 py-1 text-left group cursor-pointer"
         >
-          <span className="w-2 h-2 rounded-full bg-[#F4C928] group-hover:scale-125 transition-transform"></span>
-          <span className="text-[12px] sm:text-[13px] font-semibold tracking-wider text-[#102A36]">
-            BHAVA
+          <span className="w-7 h-7 rounded-full bg-[#EFB323] text-[#1F211F] font-bold text-[11px] grid place-items-center shadow-[inset_0_-2px_0_rgba(31,33,31,0.15)] group-hover:bg-[#FFD66B] transition-colors">
+            BK
+          </span>
+          <span
+            className="text-[14px] sm:text-[15px] font-bold tracking-tight text-[#1F211F]"
+            style={{ fontFamily: "'Outfit', sans-serif" }}
+          >
+            bhavadharani<span className="text-[#EFB323]">.</span>
           </span>
         </button>
 
         {/* Desktop Nav Items */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden lg:flex items-center gap-0.5">
           {navItems.map((item) => {
             const isActive = activeTab === item.label;
             return (
               <button
                 key={item.label}
-                id={`nav-item-${item.label.toLowerCase()}`}
+                id={`nav-item-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
                 onClick={() => scrollTo(item.targetId)}
-                className={`relative px-3.5 py-1.5 text-[13px] font-medium tracking-wide transition-colors whitespace-nowrap rounded-full ${
-                  isActive ? "text-[#102A36]" : "text-[#61727A] hover:text-[#102A36]"
+                className={`relative px-3 py-1.5 text-[12px] font-semibold tracking-wide transition-colors whitespace-nowrap rounded-full cursor-pointer ${
+                  isActive ? "text-[#1F211F]" : "text-[#5C5F5B] hover:text-[#1F211F]"
                 }`}
               >
                 {isActive && (
                   <motion.div
                     layoutId="activeNavPill"
-                    className="absolute inset-0 bg-[#F4C928]/35 rounded-full border border-[#F4C928]/60"
+                    className="absolute inset-0 bg-[#FFD66B]/65 rounded-full border border-[#EFB323]/80"
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
                 )}
@@ -126,25 +136,35 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenChat }) => {
           })}
         </div>
 
-        {/* Chatbot trigger in navbar */}
-        <button
-          id="nav-chatbot-trigger"
-          onClick={onOpenChat}
-          className="relative flex items-center gap-1.5 px-3 py-1.5 text-[12px] sm:text-[13px] font-medium rounded-full bg-[#1268A3]/10 hover:bg-[#1268A3]/15 text-[#1268A3] border border-[#1268A3]/20 transition-all hover:border-[#1268A3]/40"
-        >
-          <span>chatbot</span>
-          <Sparkles className="w-3.5 h-3.5 text-[#1268A3]" />
-        </button>
+        {/* Right Actions: Bhava 2.0 Chatbot + Connect */}
+        <div className="flex items-center gap-1.5 sm:gap-2 ml-1 sm:ml-2">
+          <button
+            id="nav-chatbot-trigger"
+            onClick={onOpenChat}
+            className="relative flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold rounded-full bg-[#174F91]/10 hover:bg-[#174F91] text-[#174F91] hover:text-[#FFFDF8] border border-[#174F91]/25 transition-all cursor-pointer group"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#EFB323] group-hover:text-[#FFD66B] transition-colors" />
+            <span>Bhava 2.0</span>
+          </button>
 
-        {/* Mobile menu toggle */}
-        <button
-          id="nav-mobile-menu-toggle"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden p-1.5 text-[#102A36] hover:bg-[#F4C928]/20 rounded-full transition-colors ml-1"
-          aria-label="Toggle Navigation Menu"
-        >
-          {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-        </button>
+          <button
+            onClick={() => scrollTo("contact")}
+            className="hidden sm:inline-flex items-center gap-1 px-3.5 py-1.5 text-[12px] font-semibold rounded-full bg-[#1F211F] hover:bg-[#EFB323] text-[#FFFDF8] hover:text-[#1F211F] transition-all cursor-pointer"
+          >
+            <span>Let's connect</span>
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Mobile menu toggle */}
+          <button
+            id="nav-mobile-menu-toggle"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden p-2 text-[#1F211F] hover:bg-[#FFD66B]/30 rounded-full transition-colors cursor-pointer"
+            aria-label="Toggle Navigation Menu"
+          >
+            {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+          </button>
+        </div>
       </nav>
 
       {/* Mobile Drawer */}
@@ -154,35 +174,42 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenChat }) => {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="md:hidden fixed top-16 left-4 right-4 bg-[#FFFDF7] border border-[#D9DDD7] rounded-2xl shadow-xl p-4 flex flex-col gap-2 z-50"
+            className="pointer-events-auto lg:hidden fixed top-16 left-3 right-3 bg-[#FFFDF8] border border-[#E4DFD3] rounded-3xl shadow-[0_20px_50px_rgba(31,33,31,0.12)] p-4 flex flex-col gap-1.5 z-50"
           >
-            {navItems.map((item) => (
-              <button
-                key={item.label}
-                id={`mobile-nav-${item.label.toLowerCase()}`}
-                onClick={() => scrollTo(item.targetId)}
-                className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  activeTab === item.label
-                    ? "bg-[#F4C928]/30 text-[#102A36] font-semibold"
-                    : "text-[#61727A] hover:bg-[#F7F5EE] hover:text-[#102A36]"
-                }`}
-              >
-                <span>{item.label}</span>
-                <span className="text-[11px] text-[#61727A]">
-                  {item.label === "WORKS" ? "Projects · Blogs · Open Source · Skills" : ""}
-                </span>
-              </button>
-            ))}
-            <div className="pt-2 border-t border-[#D9DDD7]/80 flex justify-between items-center">
+            <div className="grid grid-cols-2 gap-1.5">
+              {navItems.map((item) => (
+                <button
+                  key={item.label}
+                  id={`mobile-nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
+                  onClick={() => scrollTo(item.targetId)}
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-colors cursor-pointer ${
+                    activeTab === item.label
+                      ? "bg-[#FFD66B]/60 text-[#1F211F] border border-[#EFB323]"
+                      : "text-[#5C5F5B] hover:bg-[#F8F5ED] hover:text-[#1F211F] border border-transparent"
+                  }`}
+                >
+                  <span>{item.label}</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
+                </button>
+              ))}
+            </div>
+            <div className="pt-3 mt-1 border-t border-[#E4DFD3] flex justify-between items-center gap-2">
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   onOpenChat();
                 }}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-[#1268A3] text-white"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-semibold bg-[#174F91] text-[#FFFDF8]"
               >
-                <Sparkles className="w-4 h-4 text-[#FFD84A]" />
+                <Sparkles className="w-3.5 h-3.5 text-[#FFD66B]" />
                 <span>Chat with Bhava 2.0</span>
+              </button>
+              <button
+                onClick={() => scrollTo("contact")}
+                className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-2xl text-xs font-semibold bg-[#EFB323] text-[#1F211F]"
+              >
+                <span>Get in Touch</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </motion.div>

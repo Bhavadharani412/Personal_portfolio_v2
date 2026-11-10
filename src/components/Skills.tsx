@@ -1,26 +1,17 @@
 import React, { useState } from "react";
 import { motion } from "motion/react";
 import { SKILLS_DATA } from "../data/portfolioData";
-import { Cpu, Database, Wrench, Code2, Sparkles, GitBranch, Users } from "lucide-react";
+import { Compass, Code2, Sparkles, Wrench } from "lucide-react";
 
 export const Skills: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>("ALL");
   const [inspectedSkill, setInspectedSkill] = useState<{ name: string; context: string } | null>(null);
 
   const categoryIcons: Record<string, React.ReactNode> = {
-    LANGUAGES: <Code2 className="w-4 h-4" />,
-    // Legacy key
-    FRAMEWORKS: <Cpu className="w-4 h-4" />,
-    // New key
-    "FRAMEWORKS & RUNTIME": <Cpu className="w-4 h-4" />,
-    // Legacy key
-    DATABASES: <Database className="w-4 h-4" />,
-    // New key
-    "DATABASES & PERSISTENCE": <Database className="w-4 h-4" />,
-    ENGINEERING: <Wrench className="w-4 h-4" />,
-    "DATA / AI": <Sparkles className="w-4 h-4" />,
-    "SOFTWARE ENGINEERING PRACTICES": <GitBranch className="w-4 h-4" />,
-    "SOFT SKILLS": <Users className="w-4 h-4" />,
+    "Forward-Deployed Engineering": <Compass className="w-4 h-4" />,
+    "Software Development": <Code2 className="w-4 h-4" />,
+    "AI and Machine Learning": <Sparkles className="w-4 h-4" />,
+    "DevOps and Engineering Tools": <Wrench className="w-4 h-4" />,
   };
 
   const filteredCategories =
@@ -31,33 +22,45 @@ export const Skills: React.FC = () => {
   return (
     <section
       id="skills"
-      aria-label="Engineering Toolkit"
-      className="py-24 px-4 sm:px-6 max-w-6xl mx-auto border-t border-[#D9DDD7]/80"
+      aria-label="Engineering Capabilities & Skills"
+      className="py-24 px-4 sm:px-6 max-w-6xl mx-auto border-t border-[#E4DFD3]"
     >
-      {/* Section Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-        <div>
+      {/* Natural Section Header */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12 items-end">
+        <div className="lg:col-span-4">
+          <span className="inline-flex items-center gap-2 text-xs font-mono tracking-[0.12em] uppercase text-[#174F91] font-semibold">
+            <span className="w-2 h-2 rounded-full bg-[#EFB323]" />
+            What I Work With
+          </span>
           <h2
-            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#102A36]"
+            className="mt-2 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#1F211F] leading-[1.02]"
             style={{ fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" }}
           >
             SKILLS
           </h2>
         </div>
-        <p className="text-sm sm:text-base text-[#61727A] max-w-md">
-          A disciplined engineering toolkit structured around backend architectures, reliable data stores, and production developer workflows.
-        </p>
+        <div className="lg:col-span-8">
+          <p
+            className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-[#1F211F] leading-[1.15]"
+            style={{ fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" }}
+          >
+            A practical toolkit for{" "}
+            <span className="font-serif-italic font-normal text-[#174F91]">
+              building things.
+            </span>
+          </p>
+        </div>
       </div>
 
-      {/* Filter Chips */}
+      {/* Category Filter Pills */}
       <div className="flex flex-wrap items-center gap-2 mb-10">
         <button
           id="skill-filter-all"
           onClick={() => setActiveCategory("ALL")}
-          className={`px-3 py-1.5 rounded-full text-xs font-mono font-medium transition-all ${
+          className={`px-4 py-2 rounded-full text-xs font-mono font-semibold transition-all cursor-pointer ${
             activeCategory === "ALL"
-              ? "bg-[#102A36] text-white"
-              : "bg-[#FFFDF7] text-[#61727A] hover:text-[#102A36] border border-[#D9DDD7]"
+              ? "bg-[#1F211F] text-[#FFFDF8]"
+              : "bg-[#FFFDF8] text-[#5C5F5B] hover:text-[#1F211F] border border-[#E4DFD3]"
           }`}
         >
           ALL CATEGORIES
@@ -67,47 +70,54 @@ export const Skills: React.FC = () => {
             key={cat.category}
             id={`skill-filter-${cat.category.toLowerCase().replace(/[^a-z0-9]/g, "-")}`}
             onClick={() => setActiveCategory(cat.category)}
-            className={`px-3 py-1.5 rounded-full text-xs font-mono font-medium transition-all flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-full text-xs font-mono font-semibold transition-all flex items-center gap-2 cursor-pointer ${
               activeCategory === cat.category
-                ? "bg-[#1268A3] text-white"
-                : "bg-[#FFFDF7] text-[#61727A] hover:text-[#102A36] border border-[#D9DDD7]"
+                ? "bg-[#EFB323] text-[#1F211F] border border-[#EFB323]"
+                : "bg-[#FFFDF8] text-[#5C5F5B] hover:text-[#1F211F] border border-[#E4DFD3]"
             }`}
           >
-            {categoryIcons[cat.category]}
+            <span className="text-[#174F91]">{categoryIcons[cat.category]}</span>
             <span>{cat.category}</span>
           </button>
         ))}
       </div>
 
-      {/* Categories Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCategories.map((cat) => (
-          <div
+      {/* Four Meaningful Capability Groups Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
+        {filteredCategories.map((cat, idx) => (
+          <motion.div
             key={cat.category}
-            className="p-6 sm:p-7 rounded-3xl bg-[#FFFDF7] border border-[#D9DDD7] flex flex-col justify-between shadow-2xs hover:border-[#1268A3]/50 transition-colors"
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.45, delay: idx * 0.08 }}
+            className="p-7 rounded-3xl bg-[#FFFDF8] border border-[#E4DFD3] flex flex-col justify-between shadow-[0_6px_24px_rgba(31,33,31,0.03)] hover:border-[#174F91] transition-colors"
           >
             <div>
-              {/* Category Header */}
-              <div className="flex items-center justify-between pb-3 mb-4 border-b border-[#D9DDD7]/80">
-                <div className="flex items-center gap-2">
-                  <span className="p-1.5 rounded-lg bg-[#1268A3]/10 text-[#1268A3]">
+              {/* Group Header */}
+              <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#E4DFD3]">
+                <div className="flex items-center gap-3">
+                  <span className="w-10 h-10 rounded-2xl bg-[#FFD66B]/45 border border-[#EFB323]/50 text-[#174F91] flex items-center justify-center shrink-0">
                     {categoryIcons[cat.category]}
                   </span>
-                  <h3 className="text-sm font-mono font-bold tracking-wider text-[#102A36]">
+                  <h3
+                    className="text-lg sm:text-xl font-bold text-[#1F211F]"
+                    style={{ fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" }}
+                  >
                     {cat.category}
                   </h3>
                 </div>
-                <span className="text-[10px] font-mono text-[#61727A]">
-                  {cat.skills.length} {["SOFT SKILLS", "SOFTWARE ENGINEERING PRACTICES"].includes(cat.category) ? "SKILLS" : "TOOLS"}
+                <span className="text-[11px] font-mono font-semibold text-[#5C5F5B] bg-[#F8F5ED] px-2.5 py-1 rounded-full border border-[#E4DFD3]">
+                  {cat.skills.length} capabilities
                 </span>
               </div>
 
-              {/* Category Description */}
-              <p className="text-xs text-[#61727A] leading-relaxed mb-5">
+              {/* Group Description */}
+              <p className="text-xs sm:text-sm text-[#5C5F5B] leading-relaxed mb-5">
                 {cat.description}
               </p>
 
-              {/* Skills Tags */}
+              {/* Flexible Capability Chips */}
               <div className="flex flex-wrap gap-2">
                 {cat.skills.map((skill) => {
                   const isInspected = inspectedSkill?.name === skill.name;
@@ -115,13 +125,11 @@ export const Skills: React.FC = () => {
                     <button
                       key={skill.name}
                       id={`skill-tag-${skill.name.toLowerCase().replace(/[^a-z0-9]/g, "-")}`}
-                      onClick={() =>
-                        setInspectedSkill(isInspected ? null : skill)
-                      }
-                      className={`px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-all text-left ${
+                      onClick={() => setInspectedSkill(isInspected ? null : skill)}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-mono font-semibold transition-all text-left cursor-pointer border ${
                         isInspected
-                          ? "bg-[#F4C928] text-[#102A36] ring-2 ring-[#F4C928]/40 shadow-xs"
-                          : "bg-[#F7F5EE] hover:bg-[#F4C928]/20 text-[#102A36] border border-[#D9DDD7]/60"
+                          ? "bg-[#EFB323] text-[#1F211F] border-[#1F211F]/20 ring-2 ring-[#FFD66B] shadow-xs"
+                          : "bg-[#F8F5ED] hover:bg-[#FFD66B]/35 text-[#1F211F] border-[#E4DFD3] hover:border-[#EFB323]"
                       }`}
                     >
                       {skill.name}
@@ -131,25 +139,26 @@ export const Skills: React.FC = () => {
               </div>
             </div>
 
-            {/* Inspect Detail Drawer */}
+            {/* Practical Context Drawer */}
             {inspectedSkill && cat.skills.some((s) => s.name === inspectedSkill.name) && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                className="mt-5 pt-3.5 border-t border-[#D9DDD7]/80 text-xs text-[#102A36] bg-[#F7F5EE]/80 p-3 rounded-xl"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-5 pt-4 border-t border-[#E4DFD3]/80"
               >
-                <div className="font-mono text-[10px] text-[#1268A3] uppercase font-semibold mb-1">
-                  PRACTICAL CONTEXT // {inspectedSkill.name}
+                <div className="text-xs bg-[#F8F5ED] p-3.5 rounded-2xl border border-[#EFB323]/60">
+                  <div className="font-mono text-[10px] text-[#174F91] uppercase font-bold mb-1">
+                    {inspectedSkill.name}
+                  </div>
+                  <p className="text-[#1F211F]/85 leading-relaxed">
+                    {inspectedSkill.context}
+                  </p>
                 </div>
-                <p className="text-[#61727A] leading-relaxed">
-                  {inspectedSkill.context}
-                </p>
               </motion.div>
             )}
-          </div>
+          </motion.div>
         ))}
       </div>
-
     </section>
   );
 };

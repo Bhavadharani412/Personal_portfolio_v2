@@ -1,35 +1,151 @@
-import React from "react";
-import { ArrowUp } from "lucide-react";
+import React, { useState } from "react";
+import { ArrowUp, ShieldCheck, X } from "lucide-react";
 import { ENGINEER_PROFILE } from "../data/portfolioData";
 
 export const Footer: React.FC = () => {
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    } else {
+      scrollToTop();
+    }
+  };
+
+  const currentYear = new Date().getFullYear();
+
   return (
-    <footer className="py-12 px-4 sm:px-6 max-w-6xl mx-auto border-t border-[#D9DDD7]/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#61727A]">
-      <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
-        <span className="font-bold tracking-wider text-[#102A36]">
-          {ENGINEER_PROFILE.name}
-        </span>
-        <span className="hidden sm:inline text-[#D9DDD7]">|</span>
-        <span>Software Engineer · Backend Systems, Dev Tools & Practical AI</span>
+    <footer className="py-14 px-4 sm:px-6 max-w-6xl mx-auto border-t border-[#E4DFD3] text-xs text-[#5C5F5B]">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-10 border-b border-[#E4DFD3]/80">
+        {/* Identity & Tagline */}
+        <div className="md:col-span-5 space-y-3">
+          <div className="flex items-center gap-2.5">
+            <span className="w-7 h-7 rounded-full bg-[#EFB323] text-[#1F211F] font-bold text-[11px] grid place-items-center">
+              BK
+            </span>
+            <span
+              className="text-base font-bold tracking-tight text-[#1F211F]"
+              style={{ fontFamily: "'Outfit', sans-serif" }}
+            >
+              {ENGINEER_PROFILE.name} K
+            </span>
+          </div>
+          <p className="text-xs text-[#5C5F5B] leading-relaxed max-w-sm">
+            {ENGINEER_PROFILE.tagline} Built with curiosity, engineering discipline, and care.
+          </p>
+        </div>
+
+        {/* Useful Navigation */}
+        <div className="md:col-span-4 space-y-2.5">
+          <div className="font-mono text-[10px] uppercase tracking-wider text-[#174F91] font-bold">
+            Navigation
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-xs font-medium text-[#1F211F]">
+            <button onClick={() => scrollTo("home")} className="text-left hover:text-[#174F91] cursor-pointer">
+              Home
+            </button>
+            <button onClick={() => scrollTo("about")} className="text-left hover:text-[#174F91] cursor-pointer">
+              About
+            </button>
+            <button onClick={() => scrollTo("journey")} className="text-left hover:text-[#174F91] cursor-pointer">
+              Journey
+            </button>
+            <button onClick={() => scrollTo("projects")} className="text-left hover:text-[#174F91] cursor-pointer">
+              Works
+            </button>
+            <button onClick={() => scrollTo("blogs")} className="text-left hover:text-[#174F91] cursor-pointer">
+              Blogs
+            </button>
+            <button onClick={() => scrollTo("open-source")} className="text-left hover:text-[#174F91] cursor-pointer">
+              Open Source
+            </button>
+            <button onClick={() => scrollTo("skills")} className="text-left hover:text-[#174F91] cursor-pointer">
+              Skills
+            </button>
+            <button onClick={() => scrollTo("contact")} className="text-left hover:text-[#174F91] cursor-pointer">
+              Contact
+            </button>
+          </div>
+        </div>
+
+        {/* Standard & External Links */}
+        <div className="md:col-span-3 space-y-2.5">
+          <div className="font-mono text-[10px] uppercase tracking-wider text-[#174F91] font-bold">
+            Profiles & Privacy
+          </div>
+          <div className="flex flex-col gap-2 text-xs font-medium text-[#1F211F]">
+            <a href={ENGINEER_PROFILE.socials.github} target="_blank" rel="noreferrer" className="hover:text-[#174F91]">
+              GitHub ↗
+            </a>
+            <a href={ENGINEER_PROFILE.socials.linkedin} target="_blank" rel="noreferrer" className="hover:text-[#174F91]">
+              LinkedIn ↗
+            </a>
+            <a href={ENGINEER_PROFILE.socials.hashnode} target="_blank" rel="noreferrer" className="hover:text-[#174F91]">
+              Hashnode ↗
+            </a>
+            <button
+              onClick={() => setPrivacyOpen(true)}
+              className="inline-flex items-center gap-1.5 text-left text-[#5C5F5B] hover:text-[#1F211F] cursor-pointer"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-[#174F91]" />
+              <span>Privacy & Telemetry Note</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="flex items-center gap-6">
-        <span className="font-mono text-[11px]">
-          {new Date().getFullYear()} · SYSTEM VERIFIED
-        </span>
+      {/* Bottom Copyright & Back-to-Top Row */}
+      <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-2 text-center sm:text-left font-mono text-[11px]">
+          <span>© {currentYear} Bhavadharani K. All rights reserved.</span>
+          <span className="hidden sm:inline text-[#E4DFD3]">•</span>
+          <span className="text-[#174F91]">Made with curiosity and care.</span>
+        </div>
+
         <button
           id="back-to-top-btn"
           onClick={scrollToTop}
-          className="p-2 rounded-full bg-[#FFFDF7] hover:bg-[#F4C928]/30 border border-[#D9DDD7] text-[#102A36] transition-colors"
+          className="group inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FFFDF8] hover:bg-[#EFB323] border border-[#E4DFD3] hover:border-[#EFB323] text-[#1F211F] font-semibold transition-all cursor-pointer shadow-2xs"
           aria-label="Back to top"
         >
-          <ArrowUp className="w-3.5 h-3.5" />
+          <span>Back to top</span>
+          <ArrowUp className="w-3.5 h-3.5 transition-transform group-hover:-translate-y-0.5" />
         </button>
       </div>
+
+      {/* Lightweight Privacy Note Modal */}
+      {privacyOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1F211F]/45 backdrop-blur-xs"
+          onClick={() => setPrivacyOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md bg-[#FFFDF8] border border-[#E4DFD3] rounded-3xl p-6 shadow-2xl space-y-3"
+          >
+            <div className="flex items-center justify-between border-b border-[#E4DFD3] pb-2.5">
+              <span className="font-mono text-xs font-bold text-[#174F91]">
+                PRIVACY & DATA HANDLING
+              </span>
+              <button
+                onClick={() => setPrivacyOpen(false)}
+                className="p-1 rounded-full hover:bg-[#F8F5ED] text-[#5C5F5B] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-xs text-[#5C5F5B] leading-relaxed">
+              This portfolio uses lightweight anonymous session events to keep the Bhava 2.0 digital twin responsive and reliable. No third-party ad trackers or invasive cookies are used.
+            </p>
+          </div>
+        </div>
+      )}
     </footer>
   );
 };

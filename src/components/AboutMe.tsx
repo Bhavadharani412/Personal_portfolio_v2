@@ -1,30 +1,22 @@
-import React, { useState } from "react";
-import { motion } from "motion/react";
-import { CheckCircle2, Code2, Server, GitBranch, TerminalSquare } from "lucide-react";
+import React from "react";
+import { Compass, BookOpen, Users } from "lucide-react";
 
 export const AboutMe: React.FC = () => {
-  const [selectedPrinciple, setSelectedPrinciple] = useState<number>(0);
-
-  const principles = [
+  const values = [
     {
-      label: "Zero Black Boxes",
-      detail: "Deconstruct abstractions down to memory, event loops, and network boundaries before trusting them.",
-      icon: TerminalSquare,
+      title: "Think clearly",
+      desc: "Understand the problem before reaching for a solution.",
+      icon: Compass,
     },
     {
-      label: "Reliability Over Hype",
-      detail: "Build predictable backend pipelines with clean failure isolation rather than speculative complexity.",
-      icon: Server,
+      title: "Build responsibly",
+      desc: "Care about reliability, privacy, and the details.",
+      icon: BookOpen,
     },
     {
-      label: "Tools That Empower",
-      detail: "Engineering is multiplied when developer tooling simplifies cognitive overhead for teammates.",
-      icon: Code2,
-    },
-    {
-      label: "Open Collaboration",
-      detail: "Code is a social artifact. Great software emerges from rigorous peer review and community mentorship.",
-      icon: GitBranch,
+      title: "Keep growing",
+      desc: "Learn in public and make progress measurable.",
+      icon: Users,
     },
   ];
 
@@ -32,110 +24,111 @@ export const AboutMe: React.FC = () => {
     <section
       id="about"
       aria-label="About Bhavadharani"
-      className="py-24 px-4 sm:px-6 max-w-6xl mx-auto border-t border-[#D9DDD7]/80"
+      className="py-24 px-4 sm:px-6 max-w-6xl mx-auto border-t border-[#E4DFD3]"
     >
-      {/* Section Header */}
-      <div className="mb-14">
-        <h2
-          className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#102A36]"
-          style={{ fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" }}
-        >
-          ABOUT ME
-        </h2>
-      </div>
-
-      {/* Asymmetric Proportional Composition */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-        {/* Text-led Narrative (Editorial & Spacious - 7 cols) */}
-        <div className="lg:col-span-7 space-y-6 text-[#102A36]/90 text-base sm:text-lg leading-relaxed font-normal">
-          <p className="text-xl sm:text-2xl text-[#102A36] font-medium leading-snug">
-            I am a student software engineer driven by a fundamental impulse:{" "}
-            <span className="underline decoration-[#F4C928] decoration-2 underline-offset-4">
-              to understand how computing systems genuinely behave under the surface.
+      {/* Natural Section Header */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-14 items-end">
+        <div className="lg:col-span-4">
+          <span className="inline-flex items-center gap-2 text-xs font-mono tracking-[0.12em] uppercase text-[#174F91] font-semibold">
+            <span className="w-2 h-2 rounded-full bg-[#EFB323]" />
+            A Little About Me
+          </span>
+          <h2
+            className="mt-2 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#1F211F] leading-[1.02]"
+            style={{ fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" }}
+          >
+            ABOUT
+          </h2>
+        </div>
+        <div className="lg:col-span-8">
+          <p
+            className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-[#1F211F] leading-[1.15]"
+            style={{ fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" }}
+          >
+            Technical curiosity, with a{" "}
+            <span className="font-serif-italic font-normal text-[#174F91]">
+              human point of view.
             </span>
-          </p>
-
-          <p className="text-[#61727A]">
-            Rather than treating frameworks as opaque magic, I obsess over what happens between the lines of code —
-            from abstract syntax trees and request lifecycle bottlenecks to relational database indices and network
-            concurrency models.
-          </p>
-
-          <p className="text-[#61727A]">
-            My work spans three interconnected spaces: crafting resilient <strong className="text-[#102A36] font-medium">backend systems</strong> that
-            handle enterprise workflows gracefully, developing <strong className="text-[#102A36] font-medium">developer tools</strong> that transform code
-            comprehension into accessible technical writing, and integrating <strong className="text-[#102A36] font-medium">practical AI models</strong> into
-            predictable, user-centric products.
-          </p>
-
-          <p className="text-[#61727A]">
-            Beyond code, I believe deeply in community-driven growth. Whether mentoring junior contributors at DEVS NEC,
-            contributing to open-source codebases, or testing mental frameworks through the McKinsey Forward program,
-            I approach software engineering as an ongoing discipline of clarity, craft, and shared problem-solving.
           </p>
         </div>
+      </div>
 
-        {/* Abstract UI Component: Engineering Principles & Mental Model (5 cols) */}
-        <div className="lg:col-span-5 bg-[#FFFDF7] border border-[#D9DDD7] rounded-2xl p-6 sm:p-7 shadow-[0_4px_20px_rgba(16,42,54,0.03)]">
-          <div className="flex items-center justify-between border-b border-[#D9DDD7]/80 pb-3 mb-5">
-            <span className="text-[11px] font-mono uppercase tracking-wider text-[#61727A] flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#1268A3]"></span>
-              CORE MENTAL MODELS
-            </span>
-            <span className="text-[11px] font-mono text-[#1268A3] bg-[#1268A3]/10 px-2 py-0.5 rounded">
-              SYSTEM ETHOS
-            </span>
+      {/* Simple, Well-Composed Two-Column About Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+        {/* Left: Minimal Abstract Sculpture Card (From Approved Mockup, Palette 4) */}
+        <div className="lg:col-span-5">
+          <div
+            className="relative min-h-[340px] sm:min-h-[370px] rounded-3xl bg-[#174F91] overflow-hidden p-7 flex flex-col justify-between border border-[#174F91] shadow-[0_14px_36px_rgba(23,79,145,0.12)]"
+            aria-hidden="true"
+          >
+            {/* Geometric Forms */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-60 bg-[#F8F5ED] rounded-t-full rounded-b-2xl rotate-6 shadow-[16px_14px_0_#4C83BC]" />
+            <div className="absolute right-12 top-11 w-20 h-20 rounded-full bg-[#EFB323] shadow-[0_8px_20px_rgba(239,179,35,0.35)]" />
+            <div className="absolute left-10 bottom-14 w-16 h-16 rounded-full border border-[#FFD66B]/80" />
+
+            <div className="relative z-10 flex items-center justify-between">
+              <span className="text-[10px] font-mono uppercase tracking-widest px-3 py-1 rounded-full bg-[#FFFDF8]/15 text-[#FFFDF8] backdrop-blur-xs">
+                SOFTWARE · PRODUCT · SYSTEMS
+              </span>
+              <span className="text-[11px] font-mono text-[#FFD66B]">
+                INDIA
+              </span>
+            </div>
+
+            <div className="relative z-10">
+              <span className="font-serif-italic text-2xl sm:text-3xl text-[#FFFDF8]">
+                A mind in motion.
+              </span>
+            </div>
           </div>
+        </div>
 
-          <div className="space-y-2.5">
-            {principles.map((p, index) => {
-              const Icon = p.icon;
-              const isSelected = selectedPrinciple === index;
+        {/* Right: Genuine Personal Narrative & Values */}
+        <div className="lg:col-span-7 space-y-5 text-[#5C5F5B] text-base sm:text-[17px] leading-[1.8]">
+          <p className="text-lg sm:text-xl text-[#1F211F] font-medium leading-relaxed">
+            I'm pursuing a <strong className="font-semibold">B.Tech in Information Technology</strong> at{" "}
+            <span className="underline decoration-[#EFB323] decoration-2 underline-offset-4">
+              Nandha Engineering College
+            </span>
+            . My interests sit where software engineering, product thinking, and practical problem-solving meet.
+          </p>
+
+          <p>
+            I like understanding why something needs to exist before deciding how to build it. That means asking better
+            questions, breaking down complexity, testing assumptions, and caring about the experience on the other side
+            of the screen.
+          </p>
+
+          <p>
+            Outside code, I enjoy public speaking, writing in <strong className="text-[#1F211F] font-medium">Tamil and English</strong>,
+            sharing what I learn, and helping people grow through collaborative communities like{" "}
+            <strong className="text-[#1F211F] font-medium">DEVS NEC</strong>.
+          </p>
+
+          {/* Compact Values Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-4">
+            {values.map((val) => {
+              const Icon = val.icon;
               return (
                 <div
-                  key={p.label}
-                  id={`principle-${index}`}
-                  onClick={() => setSelectedPrinciple(index)}
-                  className={`p-3.5 rounded-xl cursor-pointer transition-all duration-200 border ${
-                    isSelected
-                      ? "bg-[#F7F5EE] border-[#F4C928] shadow-xs"
-                      : "bg-[#FFFDF7] border-transparent hover:border-[#D9DDD7] hover:bg-[#F7F5EE]/50"
-                  }`}
+                  key={val.title}
+                  className="p-4 rounded-2xl bg-[#FFFDF8] border border-[#E4DFD3] hover:border-[#EFB323] transition-colors"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div
-                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
-                          isSelected ? "bg-[#F4C928] text-[#102A36]" : "bg-[#F7F5EE] text-[#61727A]"
-                        }`}
-                      >
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <span className="text-sm font-semibold text-[#102A36]">
-                        {p.label}
-                      </span>
-                    </div>
-                    {isSelected && (
-                      <span className="text-[11px] font-mono text-[#1268A3] font-medium">active</span>
-                    )}
+                  <div className="w-8 h-8 rounded-xl bg-[#FFD66B]/40 text-[#174F91] flex items-center justify-center mb-2.5">
+                    <Icon className="w-4 h-4" />
                   </div>
-                  {isSelected && (
-                    <motion.p
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      className="mt-2.5 text-xs text-[#61727A] leading-relaxed pl-9"
-                    >
-                      {p.detail}
-                    </motion.p>
-                  )}
+                  <strong
+                    className="block text-sm font-bold text-[#1F211F] mb-1"
+                    style={{ fontFamily: "'Outfit', sans-serif" }}
+                  >
+                    {val.title}
+                  </strong>
+                  <span className="text-xs text-[#5C5F5B] leading-relaxed block">
+                    {val.desc}
+                  </span>
                 </div>
               );
             })}
-          </div>
-
-          <div className="mt-6 pt-4 border-t border-[#D9DDD7]/80 flex items-center justify-between text-xs text-[#61727A]">
-            <span>ENGINEER PROFILE</span>
-            <span className="font-mono text-[#102A36] font-medium">BHAVADHARANI // B.TECH IT</span>
           </div>
         </div>
       </div>

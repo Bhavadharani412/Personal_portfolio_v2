@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Sparkles, X, Send, RotateCcw } from "lucide-react";
+import { Sparkles, X, Send, RotateCcw, CheckCheck, MessageSquare } from "lucide-react";
 import { ChatMessage } from "../types";
 import { getOrCreateSessionId, trackEvent } from "../utils/analytics";
 
@@ -8,6 +8,14 @@ interface ChatbotProps {
   isOpen: boolean;
   onToggle: () => void;
 }
+
+const getFormattedTime = () => {
+  try {
+    return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  } catch {
+    return "Just now";
+  }
+};
 
 const renderInlineFormatting = (text: string): React.ReactNode[] => {
   const regex = /(\*\*(.*?)\*\*|`([^`]+)`|\[([^\]]+)\]\(([^)]+)\))/g;
@@ -22,13 +30,13 @@ const renderInlineFormatting = (text: string): React.ReactNode[] => {
 
     if (match[2] !== undefined) {
       elements.push(
-        <strong key={match.index} className="font-bold text-[#102A36]">
+        <strong key={match.index} className="font-bold text-[#1F211F]">
           {match[2]}
         </strong>
       );
     } else if (match[3] !== undefined) {
       elements.push(
-        <code key={match.index} className="font-mono bg-black/5 px-1 py-0.5 rounded text-[11px]">
+        <code key={match.index} className="font-mono bg-[#1F211F]/8 px-1.5 py-0.5 rounded text-[11px]">
           {match[3]}
         </code>
       );
@@ -39,7 +47,7 @@ const renderInlineFormatting = (text: string): React.ReactNode[] => {
           href={match[5]}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#1268A3] underline hover:opacity-80"
+          className="text-[#174F91] font-semibold underline hover:opacity-80"
         >
           {match[4]}
         </a>
@@ -75,7 +83,7 @@ export const FormattedChatMessage: React.FC<{ text: string }> = ({ text }) => {
                 const cleanLine = line.replace(/^\s*[\-\*\•\d\.]+\s+/, "");
                 return (
                   <li key={lIdx} className="flex items-start gap-1.5 text-xs">
-                    <span className="text-[#1268A3] font-bold select-none">•</span>
+                    <span className="text-[#174F91] font-bold select-none">•</span>
                     <span className="flex-1">{renderInlineFormatting(cleanLine)}</span>
                   </li>
                 );
@@ -91,7 +99,7 @@ export const FormattedChatMessage: React.FC<{ text: string }> = ({ text }) => {
               if (bulletMatch) {
                 return (
                   <div key={lIdx} className="flex items-start gap-1.5 ml-1 my-0.5">
-                    <span className="text-[#1268A3] font-bold select-none">•</span>
+                    <span className="text-[#174F91] font-bold select-none">•</span>
                     <span className="flex-1">{renderInlineFormatting(bulletMatch[1])}</span>
                   </div>
                 );
@@ -119,18 +127,18 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
     {
       id: "init-1",
       role: "assistant",
-      text: "Hello! I am **Bhava 2.0**, Bhavadharani's conversational digital twin. Ask me about backend architectures, projects like Dev Explain AI, open-source work, or engineering journey.",
-      timestamp: "Just now",
+      text: "Hi there! I'm **Bhava 2.0**, Bhavadharani's personal digital twin. Feel free to ask me about her projects (like WebTrack, Collaborative Text Editor, or TalentGraph AI), technical skills, internship experience, or engineering journey!",
+      timestamp: getFormattedTime(),
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const suggestedQuestions = [
-    "What did you build?",
-    "What's your strongest project?",
-    "What technologies do you use?",
-    "Tell me about your journey.",
+    "What projects have you built?",
+    "Tell me about your skills & stack",
+    "What was your Synergy Marine internship?",
+    "How does your Collaborative Editor work?",
   ];
 
   const scrollToBottom = () => {
@@ -156,7 +164,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
         id: userMessageId,
         role: "user",
         text: trimmedMsg,
-        timestamp: "Now",
+        timestamp: getFormattedTime(),
       },
     ];
 
@@ -187,8 +195,8 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
           {
             id: `bot-${Date.now()}`,
             role: "assistant",
-            text: "I've hit a temporary limit. Please wait a moment before asking another question.",
-            timestamp: "Just now",
+            text: "I've hit a temporary rate limit. Please wait a moment before sending another message.",
+            timestamp: getFormattedTime(),
           },
         ]);
         return;
@@ -213,7 +221,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
           id: `bot-${Date.now()}`,
           role: "assistant",
           text: replyText,
-          timestamp: "Just now",
+          timestamp: getFormattedTime(),
         },
       ]);
 
@@ -225,8 +233,8 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
         {
           id: `bot-${Date.now()}`,
           role: "assistant",
-          text: "I'm temporarily unavailable. Please try asking again in a moment.",
-          timestamp: "Just now",
+          text: "I'm temporarily unavailable right now. Please try asking again in a moment.",
+          timestamp: getFormattedTime(),
         },
       ]);
       trackEvent("chat_response", { chat_session_id: chatSessionId, status: "error" });
@@ -242,15 +250,15 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
       {
         id: "init-reset",
         role: "assistant",
-        text: "Context refreshed. What would you like to know about Bhavadharani's software engineering background?",
-        timestamp: "Just now",
+        text: "Conversation refreshed! What would you like to explore about Bhavadharani's projects, skills, or experience?",
+        timestamp: getFormattedTime(),
       },
     ]);
   };
 
   return (
     <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end">
-      {/* Expanded State Modal */}
+      {/* WhatsApp-Inspired Conversational Dialog */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -258,23 +266,27 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 16 }}
             transition={{ type: "spring", stiffness: 350, damping: 28 }}
-            className="mb-3 w-[92vw] sm:w-[390px] h-[520px] max-h-[82vh] bg-[#FFFDF7] border border-[#1268A3]/30 rounded-3xl shadow-[0_12px_40px_rgba(18,104,163,0.18)] flex flex-col overflow-hidden"
+            className="mb-3 w-[92vw] sm:w-[400px] h-[545px] max-h-[82vh] bg-[#FFFDF8] border border-[#E4DFD3] rounded-3xl shadow-[0_20px_60px_rgba(23,79,145,0.22)] flex flex-col overflow-hidden"
           >
-            {/* Header */}
-            <div className="px-5 py-4 bg-[#1268A3] text-white flex items-center justify-between shadow-2xs">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
-                  <Sparkles className="w-4 h-4 text-[#FFD84A]" />
+            {/* Conversational Assistant Header */}
+            <div className="px-4 py-3.5 bg-[#174F91] text-[#FFFDF8] flex items-center justify-between border-b border-[#4C83BC]/30">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-full bg-[#EFB323] text-[#1F211F] font-bold text-xs flex items-center justify-center border-2 border-[#FFFDF8]">
+                    BK
+                  </div>
+                  <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[#FFD66B] border-2 border-[#174F91]" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold tracking-wide flex items-center gap-1.5">
                     <span>Bhava 2.0</span>
-                    <span className="text-[10px] font-mono font-normal bg-white/20 px-1.5 py-0.2 rounded">
-                      TWIN
+                    <span className="text-[9px] font-mono font-bold bg-[#EFB323] text-[#1F211F] px-1.5 py-0.5 rounded">
+                      DIGITAL TWIN
                     </span>
                   </h3>
-                  <p className="text-[11px] text-white/80 font-normal">
-                    Ask me about my work
+                  <p className="text-[11px] text-[#FFFDF8]/85 font-normal flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#FFD66B]" />
+                    <span>Online · Grounded in Bhavadharani's work</span>
                   </p>
                 </div>
               </div>
@@ -283,7 +295,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
                 <button
                   id="reset-chat-btn"
                   onClick={handleResetChat}
-                  className="p-1.5 rounded-full hover:bg-white/10 text-white/80 hover:text-white transition-colors"
+                  className="p-2 rounded-full hover:bg-[#FFFDF8]/15 text-[#FFFDF8]/85 hover:text-[#FFFDF8] transition-colors cursor-pointer"
                   title="Reset conversation"
                   aria-label="Reset Conversation"
                 >
@@ -292,7 +304,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
                 <button
                   id="close-chat-btn"
                   onClick={onToggle}
-                  className="p-1.5 rounded-full hover:bg-white/10 text-white/80 hover:text-white transition-colors"
+                  className="p-2 rounded-full hover:bg-[#FFFDF8]/15 text-[#FFFDF8]/85 hover:text-[#FFFDF8] transition-colors cursor-pointer"
                   aria-label="Close Chat"
                 >
                   <X className="w-4 h-4" />
@@ -300,23 +312,47 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
               </div>
             </div>
 
-            {/* Messages Scroll Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-[#F7F5EE]/40 text-xs">
+            {/* Messages Scroll Area (WhatsApp-style left/right bubbles + timestamps) */}
+            <div
+              className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#F8F5ED] text-xs"
+              style={{
+                backgroundImage:
+                  "radial-gradient(rgba(23, 79, 145, 0.07) 1px, transparent 1px)",
+                backgroundSize: "18px 18px",
+              }}
+            >
+              {/* Date / Encryption-style Context Banner */}
+              <div className="flex justify-center mb-2">
+                <span className="text-[10px] font-mono px-3 py-1 rounded-full bg-[#FFFDF8]/90 border border-[#E4DFD3] text-[#5C5F5B] shadow-2xs">
+                  ✦ Personal Engineering Assistant · Verified Portfolio Context
+                </span>
+              </div>
+
               {messages.map((msg) => {
                 const isUser = msg.role === "user";
                 return (
                   <div
                     key={msg.id}
-                    className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+                    className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
                   >
                     <div
-                      className={`max-w-[84%] rounded-2xl px-3.5 py-2.5 leading-relaxed ${
+                      className={`relative max-w-[85%] rounded-2xl px-3.5 pt-2.5 pb-2 leading-relaxed shadow-2xs ${
                         isUser
-                          ? "bg-[#F4C928] text-[#102A36] font-medium rounded-br-xs shadow-2xs"
-                          : "bg-[#FFFDF7] text-[#102A36] border border-[#D9DDD7] rounded-bl-xs shadow-2xs"
+                          ? "bg-[#FFD66B] text-[#1F211F] border border-[#EFB323] rounded-tr-xs"
+                          : "bg-[#FFFDF8] text-[#1F211F] border border-[#E4DFD3] rounded-tl-xs"
                       }`}
                     >
                       <FormattedChatMessage text={msg.text} />
+
+                      {/* Timestamp & Read Receipt Row */}
+                      <div
+                        className={`mt-1.5 flex items-center justify-end gap-1 text-[9px] font-mono ${
+                          isUser ? "text-[#1F211F]/70" : "text-[#5C5F5B]"
+                        }`}
+                      >
+                        <span>{msg.timestamp}</span>
+                        {isUser && <CheckCheck className="w-3 h-3 text-[#174F91]" />}
+                      </div>
                     </div>
                   </div>
                 );
@@ -324,54 +360,56 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
 
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-[#FFFDF7] border border-[#D9DDD7] rounded-2xl rounded-bl-xs px-3.5 py-2 text-xs text-[#61727A] flex items-center gap-1.5 shadow-2xs">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#1268A3] animate-bounce" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#1268A3] animate-bounce [animation-delay:0.2s]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#1268A3] animate-bounce [animation-delay:0.4s]" />
-                    <span className="ml-1 text-[11px] font-mono text-[#1268A3]">Reasoning...</span>
+                  <div className="bg-[#FFFDF8] border border-[#E4DFD3] rounded-2xl rounded-tl-xs px-3.5 py-2.5 text-xs text-[#5C5F5B] flex items-center gap-1.5 shadow-2xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#EFB323] animate-bounce" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#174F91] animate-bounce [animation-delay:0.2s]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#4C83BC] animate-bounce [animation-delay:0.4s]" />
+                    <span className="ml-1 text-[11px] font-mono text-[#174F91]">
+                      Bhava 2.0 is typing...
+                    </span>
                   </div>
                 </div>
               )}
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Suggested Questions Carousel */}
-            <div className="p-2.5 bg-[#FFFDF7] border-t border-[#D9DDD7]/80 flex gap-1.5 overflow-x-auto no-scrollbar">
+            {/* Suggested Questions Strip */}
+            <div className="px-3 py-2 bg-[#FFFDF8] border-t border-[#E4DFD3] flex gap-1.5 overflow-x-auto">
               {suggestedQuestions.map((q) => (
                 <button
                   key={q}
                   id={`suggested-q-${q.toLowerCase().replace(/[^a-z0-9]/g, "-")}`}
                   onClick={() => handleSendMessage(q)}
                   disabled={isLoading}
-                  className="text-[11px] px-2.5 py-1 rounded-full bg-[#F7F5EE] hover:bg-[#F4C928]/30 text-[#102A36] border border-[#D9DDD7] whitespace-nowrap transition-colors shrink-0 disabled:opacity-50"
+                  className="text-[11px] px-3 py-1 rounded-full bg-[#F8F5ED] hover:bg-[#FFD66B]/50 text-[#1F211F] border border-[#E4DFD3] hover:border-[#EFB323] whitespace-nowrap transition-colors shrink-0 disabled:opacity-50 cursor-pointer font-medium"
                 >
                   {q}
                 </button>
               ))}
             </div>
 
-            {/* Input Form */}
+            {/* Message Input Bar */}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSendMessage();
               }}
-              className="p-3 bg-[#FFFDF7] border-t border-[#D9DDD7]/80 flex items-center gap-2"
+              className="p-3 bg-[#FFFDF8] border-t border-[#E4DFD3] flex items-center gap-2"
             >
               <input
                 type="text"
                 id="chatbot-input"
-                placeholder="ask about Bhavadharani's works..."
+                placeholder="Message Bhava 2.0 about projects, skills, work..."
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 disabled={isLoading}
-                className="flex-1 px-3.5 py-2 text-xs rounded-xl bg-[#F7F5EE] border border-[#D9DDD7] text-[#102A36] placeholder-[#61727A]/70 focus:outline-none focus:border-[#1268A3] focus:ring-1 focus:ring-[#1268A3] transition-all"
+                className="flex-1 px-4 py-2.5 text-xs rounded-full bg-[#F8F5ED] border border-[#E4DFD3] text-[#1F211F] placeholder-[#5C5F5B]/75 focus:outline-none focus:border-[#174F91] focus:ring-2 focus:ring-[#174F91]/15 transition-all"
               />
               <button
                 type="submit"
                 id="chatbot-send-btn"
                 disabled={!inputMessage.trim() || isLoading}
-                className="p-2 rounded-xl bg-[#1268A3] text-white hover:bg-[#2388C5] disabled:opacity-40 transition-colors shadow-2xs"
+                className="w-9 h-9 rounded-full bg-[#EFB323] hover:bg-[#FFD66B] text-[#1F211F] disabled:opacity-40 transition-colors flex items-center justify-center shadow-xs shrink-0 cursor-pointer"
                 aria-label="Send message to Bhava 2.0"
               >
                 <Send className="w-3.5 h-3.5" />
@@ -381,17 +419,20 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
         )}
       </AnimatePresence>
 
-      {/* Collapsed State Trigger */}
+      {/* Floating Personal Chatbot Trigger Button */}
       <motion.button
         id="chatbot-collapsed-trigger"
         onClick={onToggle}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="group flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#1268A3] hover:bg-[#2388C5] text-white shadow-[0_6px_20px_rgba(18,104,163,0.35)] transition-all font-semibold text-xs sm:text-sm tracking-wide"
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.96 }}
+        className="group flex items-center gap-2.5 px-4.5 py-3 rounded-full bg-[#1F211F] hover:bg-[#174F91] text-[#FFFDF8] border border-[#EFB323]/50 shadow-[0_10px_28px_rgba(31,33,31,0.25)] transition-all font-bold text-xs sm:text-sm tracking-wide cursor-pointer"
         aria-label="Toggle Bhava 2.0 Chatbot"
       >
-        <Sparkles className="w-4 h-4 text-[#FFD84A] group-hover:rotate-12 transition-transform" />
-        <span>✦ Bhava 2.0</span>
+        <span className="w-6 h-6 rounded-full bg-[#EFB323] text-[#1F211F] flex items-center justify-center">
+          {isOpen ? <X className="w-3.5 h-3.5" /> : <MessageSquare className="w-3.5 h-3.5" />}
+        </span>
+        <span>{isOpen ? "Close Bhava 2.0" : "Chat with Bhava 2.0"}</span>
+        <Sparkles className="w-3.5 h-3.5 text-[#FFD66B] group-hover:rotate-12 transition-transform" />
       </motion.button>
     </div>
   );

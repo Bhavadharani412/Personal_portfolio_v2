@@ -4,9 +4,7 @@ import { Hero } from "./components/Hero";
 import { AboutMe } from "./components/AboutMe";
 import { Journey } from "./components/Journey";
 import { Projects } from "./components/Projects";
-import { AllProjects } from "./components/AllProjects";
 import { Blogs } from "./components/Blogs";
-import { AllBlogs } from "./components/AllBlogs";
 import { OpenSource } from "./components/OpenSource";
 import { Skills } from "./components/Skills";
 import { Contact } from "./components/Contact";
@@ -14,17 +12,13 @@ import { Chatbot } from "./components/Chatbot";
 import { Footer } from "./components/Footer";
 import { trackEvent, getAttributionData } from "./utils/analytics";
 
-type View = "portfolio" | "all-projects" | "all-blogs";
-
 export default function App() {
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [view, setView] = useState<View>("portfolio");
 
   useEffect(() => {
-    // Initialize attribution and send page_view event on load/view change
     const attribution = getAttributionData();
-    trackEvent("page_view", { view, source: attribution.source });
-  }, [view]);
+    trackEvent("page_view", { view: "portfolio", source: attribution.source });
+  }, []);
 
   const handleOpenChat = () => {
     setIsChatOpen(true);
@@ -41,69 +35,42 @@ export default function App() {
     }
   };
 
-  const handleViewAllProjects = () => {
-    setView("all-projects");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleViewAllBlogs = () => {
-    setView("all-blogs");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleBack = () => {
-    setView("portfolio");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   return (
-    <div className="min-h-screen bg-[#F7F5EE] text-[#102A36] selection:bg-[#F4C928]/35 selection:text-[#102A36]">
+    <div className="min-h-screen bg-[#F8F5ED] text-[#1F211F] selection:bg-[#EFB323]/35 selection:text-[#1F211F]">
       {/* Scroll-Aware Desktop & Mobile Navbar */}
       <Navbar onOpenChat={handleOpenChat} />
 
-      {/* Main Content */}
+      {/* Single-Page Portfolio Experience */}
       <main>
-        {view === "portfolio" && (
-          <>
-            {/* 1. HOME — Hero */}
-            <Hero onOpenChat={handleOpenChat} onExploreWork={handleExploreWork} />
+        {/* Home — Hero */}
+        <Hero onOpenChat={handleOpenChat} onExploreWork={handleExploreWork} />
 
-            {/* 2. ABOUT ME */}
-            <AboutMe />
+        {/* About */}
+        <AboutMe />
 
-            {/* 3. JOURNEY */}
-            <Journey />
+        {/* Journey — Horizontal Interactive Timeline */}
+        <Journey />
 
-            {/* 4. PROJECTS — first 3 + view all */}
-            <Projects onViewAll={handleViewAllProjects} />
+        {/* Works — 3 Featured + View All Works inline */}
+        <Projects />
 
-            {/* 5. BLOGS — first 3 + view all */}
-            <Blogs onViewAll={handleViewAllBlogs} />
+        {/* Blogs — 3 Featured + Read All Blogs inline */}
+        <Blogs />
 
-            {/* 6. OPEN SOURCE CONTRIBUTIONS */}
-            <OpenSource />
+        {/* Open Source Contributions */}
+        <OpenSource />
 
-            {/* 7. SKILLS */}
-            <Skills />
+        {/* Skills */}
+        <Skills />
 
-            {/* 8. CONTACT + SOCIALS */}
-            <Contact />
-          </>
-        )}
-
-        {view === "all-projects" && (
-          <AllProjects onBack={handleBack} />
-        )}
-
-        {view === "all-blogs" && (
-          <AllBlogs onBack={handleBack} />
-        )}
+        {/* Contact & Quick Links */}
+        <Contact onOpenChat={handleOpenChat} />
       </main>
 
       {/* Footer */}
       <Footer />
 
-      {/* 9. CHATBOT — Fixed throughout the website (Bottom Right) */}
+      {/* Floating Personal Chatbot — Bhava 2.0 */}
       <Chatbot isOpen={isChatOpen} onToggle={handleToggleChat} />
     </div>
   );

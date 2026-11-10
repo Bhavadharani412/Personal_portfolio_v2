@@ -12,6 +12,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+const HOST =
+  process.env.HOST ||
+  (process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1");
 
 app.use(express.json());
 
@@ -26,7 +29,7 @@ const workerEnv: Env = {
 app.all("/api/*", async (req, res) => {
   const fullUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
   const requestHeaders = new Headers();
-  
+
   for (const [key, value] of Object.entries(req.headers)) {
     if (value) {
       if (Array.isArray(value)) {
@@ -58,7 +61,7 @@ async function start() {
   if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: { middlewareMode: true, host: HOST },
       appType: "spa",
     });
     app.use(vite.middlewares);
@@ -70,8 +73,9 @@ async function start() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server listening on http://0.0.0.0:${PORT}`);
+  app.listen(PORT, HOST, () => {
+    const displayHost = HOST === "127.0.0.1" ? "localhost" : HOST;
+    console.log(`Server listening on http://${displayHost}:${PORT}`);
   });
 }
 

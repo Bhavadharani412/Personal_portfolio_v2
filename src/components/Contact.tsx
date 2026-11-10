@@ -1,19 +1,28 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowUpRight, Mail, Send, CheckCircle2, FileText, Download, Copy, Check } from "lucide-react";
+import {
+  ArrowUpRight,
+  Mail,
+  FileText,
+  Copy,
+  Check,
+  FolderGit2,
+  BookOpen,
+  GitPullRequest,
+  Globe,
+  Code2,
+  Sparkles,
+  MessageSquare,
+} from "lucide-react";
 import { ENGINEER_PROFILE } from "../data/portfolioData";
 
-export const Contact: React.FC = () => {
-  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
-  const [submitted, setSubmitted] = useState(false);
+interface ContactProps {
+  onOpenChat?: () => void;
+}
+
+export const Contact: React.FC<ContactProps> = ({ onOpenChat }) => {
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [resumeModalOpen, setResumeModalOpen] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name || !formData.email || !formData.message) return;
-    setSubmitted(true);
-  };
 
   const copyEmail = () => {
     navigator.clipboard.writeText(ENGINEER_PROFILE.email);
@@ -21,202 +30,280 @@ export const Contact: React.FC = () => {
     setTimeout(() => setCopiedEmail(false), 2200);
   };
 
-  const socialLinks = [
-    { name: "LinkedIn", href: ENGINEER_PROFILE.socials.linkedin, external: true },
-    { name: "GitHub", href: ENGINEER_PROFILE.socials.github, external: true },
-    { name: "LeetCode", href: ENGINEER_PROFILE.socials.leetcode, external: true },
-    { name: "Hashnode", href: ENGINEER_PROFILE.socials.hashnode, external: true },
-    { name: "Gmail", href: `mailto:${ENGINEER_PROFILE.email}`, external: false },
-  ];
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const handleOpenBhavaChat = () => {
+    if (onOpenChat) {
+      onOpenChat();
+    } else {
+      const trigger = document.getElementById("chatbot-collapsed-trigger");
+      if (trigger) trigger.click();
+    }
+  };
 
   return (
     <section
       id="contact"
-      aria-label="Contact and Socials"
-      className="py-24 px-4 sm:px-6 max-w-6xl mx-auto border-t border-[#D9DDD7]/80"
+      aria-label="Contact and Quick Links"
+      className="py-24 px-4 sm:px-6 max-w-6xl mx-auto border-t border-[#E4DFD3]"
     >
-      {/* Section Header */}
-      <div className="mb-14">
-        <span className="text-[11px] font-mono tracking-widest uppercase text-[#1268A3] font-semibold">
-          07 // ENGAGEMENT
-        </span>
-        <h2
-          className="mt-1 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#102A36]"
-          style={{ fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" }}
-        >
-          LET'S CONNECT
-        </h2>
-        <p className="mt-2 text-sm sm:text-base text-[#61727A] max-w-xl">
-          Interested in discussing software engineering internships, product engineering roles,
-          or backend & practical AI architectures? Feel free to send a note or explore my channels.
-        </p>
+      {/* Welcoming Contact Banner (Natural Section Heading, Palette 4) */}
+      <div className="relative rounded-3xl bg-[#1F211F] text-[#F8F5ED] p-8 sm:p-12 mb-12 overflow-hidden border border-[#1F211F] shadow-[0_20px_50px_rgba(31,33,31,0.12)]">
+        {/* Decorative Orbital Rings in Steel Azure & Sunflower Gold */}
+        <div
+          className="pointer-events-none absolute -right-16 -top-24 w-80 h-80 rounded-full border border-[#4C83BC]/35"
+          style={{
+            boxShadow: "0 0 0 36px rgba(239, 179, 35, 0.04), 0 0 0 76px rgba(76, 131, 188, 0.05)",
+          }}
+          aria-hidden="true"
+        />
+
+        <div className="relative z-10 max-w-2xl">
+          <span className="inline-flex items-center gap-2 text-xs font-mono tracking-[0.12em] uppercase text-[#FFD66B] font-semibold">
+            <span className="w-2 h-2 rounded-full bg-[#EFB323]" />
+            Have a Thoughtful Problem to Solve?
+          </span>
+
+          <h2
+            className="mt-3 text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-[#FFFDF8] leading-[0.98]"
+            style={{ fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" }}
+          >
+            Let's make something{" "}
+            <span className="font-serif-italic font-normal text-[#EFB323]">
+              matter.
+            </span>
+          </h2>
+
+          <p className="mt-4 text-sm sm:text-base text-[#F8F5ED]/80 leading-relaxed max-w-xl">
+            I'm always happy to connect around software engineering internships, product engineering roles,
+            backend and AI systems, or open-source collaborations. Write directly to{" "}
+            <strong className="text-[#FFFDF8] font-medium">Bhavadharani</strong> below.
+          </p>
+
+          {/* Direct Email Action Addressed to Bhavadharani */}
+          <div className="mt-7 flex flex-wrap items-center gap-3">
+            <a
+              href={`mailto:${ENGINEER_PROFILE.email}?subject=Hello%20Bhavadharani`}
+              className="group inline-flex items-center gap-2.5 px-6 sm:px-7 py-3.5 rounded-full bg-[#EFB323] hover:bg-[#FFD66B] text-[#1F211F] font-bold text-sm transition-all shadow-[0_8px_24px_rgba(239,179,35,0.3)] hover:-translate-y-0.5"
+            >
+              <Mail className="w-4 h-4" />
+              <span>Email Bhavadharani ({ENGINEER_PROFILE.email})</span>
+              <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </a>
+
+            <button
+              id="copy-email-btn"
+              onClick={copyEmail}
+              className="inline-flex items-center gap-2 px-5 py-3.5 rounded-full bg-[#FFFDF8]/10 hover:bg-[#FFFDF8]/20 text-[#FFFDF8] text-xs font-mono font-semibold border border-[#FFFDF8]/20 transition-colors cursor-pointer"
+            >
+              {copiedEmail ? <Check className="w-3.5 h-3.5 text-[#EFB323]" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedEmail ? "Copied Address!" : "Copy Email"}</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Grid: Contact Form + Direct Channels */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-        {/* Contact Form (7 cols) */}
-        <div className="lg:col-span-7 bg-[#FFFDF7] border border-[#D9DDD7] rounded-3xl p-6 sm:p-9 shadow-[0_4px_20px_rgba(16,42,54,0.03)]">
-          {submitted ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="py-12 text-center flex flex-col items-center"
-            >
-              <div className="w-12 h-12 rounded-full bg-[#F4C928]/25 text-[#102A36] flex items-center justify-center mb-4">
-                <CheckCircle2 className="w-6 h-6 text-[#102A36]" />
-              </div>
-              <h3 className="text-xl font-bold text-[#102A36] mb-2">Message Sent</h3>
-              <p className="text-sm text-[#61727A] max-w-sm mb-6">
-                Thank you, {formData.name}. I've received your note and will get back to you shortly at {formData.email}.
-              </p>
-              <button
-                id="send-another-message"
-                onClick={() => {
-                  setSubmitted(false);
-                  setFormData({ name: "", email: "", message: "" });
-                }}
-                className="text-xs font-mono font-medium text-[#1268A3] hover:underline"
-              >
-                Send another message →
-              </button>
-            </motion.div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label
-                  htmlFor="contact-name"
-                  className="block text-xs font-mono font-medium uppercase tracking-wider text-[#102A36] mb-2"
-                >
-                  Name
-                </label>
-                <input
-                  type="text"
-                  id="contact-name"
-                  required
-                  placeholder="Your name or team"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-[#F7F5EE] border border-[#D9DDD7] text-sm text-[#102A36] placeholder-[#61727A]/60 focus:outline-none focus:border-[#1268A3] focus:ring-2 focus:ring-[#1268A3]/10 transition-all"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="contact-email"
-                  className="block text-xs font-mono font-medium uppercase tracking-wider text-[#102A36] mb-2"
-                >
-                  Email
-                </label>
-                <input
-                  type="email"
-                  id="contact-email"
-                  required
-                  placeholder="name@organization.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-[#F7F5EE] border border-[#D9DDD7] text-sm text-[#102A36] placeholder-[#61727A]/60 focus:outline-none focus:border-[#1268A3] focus:ring-2 focus:ring-[#1268A3]/10 transition-all"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="contact-message"
-                  className="block text-xs font-mono font-medium uppercase tracking-wider text-[#102A36] mb-2"
-                >
-                  Message
-                </label>
-                <textarea
-                  id="contact-message"
-                  required
-                  rows={4}
-                  placeholder="Tell me about your team, role, or project opportunity..."
-                  value={formData.message}
-                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-[#F7F5EE] border border-[#D9DDD7] text-sm text-[#102A36] placeholder-[#61727A]/60 focus:outline-none focus:border-[#1268A3] focus:ring-2 focus:ring-[#1268A3]/10 transition-all resize-none"
-                />
-              </div>
-
-              <button
-                type="submit"
-                id="contact-submit-btn"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-[#F4C928] hover:bg-[#FFD84A] text-[#102A36] font-semibold text-sm transition-all shadow-2xs hover:shadow-sm"
-              >
-                <span>Send message</span>
-                <ArrowUpRight className="w-4 h-4" />
-              </button>
-            </form>
-          )}
-        </div>
-
-        {/* Channels & Social Links (5 cols) */}
-        <div className="lg:col-span-5 space-y-6">
-          {/* Direct Email Card */}
-          <div className="p-6 rounded-3xl bg-[#FFFDF7] border border-[#D9DDD7] shadow-2xs">
-            <div className="text-[11px] font-mono uppercase tracking-widest text-[#1268A3] font-semibold mb-2">
-              DIRECT INBOX
-            </div>
-            <div className="text-base font-semibold text-[#102A36] font-mono break-all mb-4">
-              {ENGINEER_PROFILE.email}
-            </div>
-            <div className="flex items-center gap-2">
-              <a
-                href={`mailto:${ENGINEER_PROFILE.email}`}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#102A36] text-white text-xs font-medium hover:bg-[#1268A3] transition-colors"
-              >
-                <Mail className="w-3.5 h-3.5" />
-                <span>Open Mail Client ↗</span>
-              </a>
-              <button
-                id="copy-email-btn"
-                onClick={copyEmail}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#F7F5EE] hover:bg-[#F4C928]/30 text-[#102A36] text-xs font-medium border border-[#D9DDD7] transition-colors"
-              >
-                {copiedEmail ? <Check className="w-3.5 h-3.5 text-[#1268A3]" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedEmail ? "Copied!" : "Copy Address"}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Elegant Social Links List */}
-          <div className="p-6 rounded-3xl bg-[#FFFDF7] border border-[#D9DDD7] shadow-2xs">
-            <div className="text-[11px] font-mono uppercase tracking-widest text-[#61727A] font-semibold mb-3">
-              TECHNICAL PROFILES & PRESENCE
-            </div>
-            <div className="divide-y divide-[#D9DDD7]/60">
-              {socialLinks.map((link) => (
-                <a
-                  key={link.name}
-                  id={`social-link-${link.name.toLowerCase()}`}
-                  href={link.href}
-                  target={link.external ? "_blank" : "_self"}
-                  rel={link.external ? "noreferrer" : ""}
-                  className="py-3 flex items-center justify-between group hover:text-[#1268A3] transition-colors text-sm font-medium text-[#102A36]"
-                >
-                  <span className="group-hover:translate-x-1 transition-transform">
-                    {link.name}
-                  </span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-[#61727A] group-hover:text-[#1268A3] transition-colors" />
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Download Resume Action */}
-          <div className="p-5 rounded-2xl bg-[#F7F5EE] border border-[#D9DDD7] flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <FileText className="w-4 h-4 text-[#1268A3]" />
-              <span className="text-xs font-mono font-medium text-[#102A36]">
-                RESUME // CURRICULUM VITAE
+      {/* Grid: Quick Links Directory + "Try the Chatbot (Bhava 2.0)" Box */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left: All 8 Quick Links (7 cols) */}
+        <div className="lg:col-span-7">
+          <div className="p-6 sm:p-8 rounded-3xl bg-[#FFFDF8] border border-[#E4DFD3] shadow-[0_6px_24px_rgba(31,33,31,0.03)]">
+            <div className="flex items-center justify-between border-b border-[#E4DFD3] pb-3.5 mb-5">
+              <span className="text-xs font-mono uppercase tracking-wider text-[#174F91] font-bold">
+                QUICK LINKS & PROFILES
+              </span>
+              <span className="text-[11px] font-mono text-[#5C5F5B]">
+                DIRECT NAVIGATION
               </span>
             </div>
-            <button
-              id="download-resume-btn"
-              onClick={() => setResumeModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#F4C928] hover:bg-[#FFD84A] text-[#102A36] text-xs font-semibold transition-all shadow-2xs"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Download Resume</span>
-            </button>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* 1. Projects */}
+              <button
+                onClick={() => scrollToSection("projects")}
+                className="p-3.5 rounded-2xl bg-[#F8F5ED] hover:bg-[#FFD66B]/35 border border-[#E4DFD3] hover:border-[#EFB323] flex items-center justify-between text-left transition-all group cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <FolderGit2 className="w-4 h-4 text-[#174F91]" />
+                  <span className="text-sm font-bold text-[#1F211F]">Projects</span>
+                </div>
+                <ArrowUpRight className="w-3.5 h-3.5 text-[#5C5F5B] group-hover:text-[#1F211F]" />
+              </button>
+
+              {/* 2. Blogs */}
+              <button
+                onClick={() => scrollToSection("blogs")}
+                className="p-3.5 rounded-2xl bg-[#F8F5ED] hover:bg-[#FFD66B]/35 border border-[#E4DFD3] hover:border-[#EFB323] flex items-center justify-between text-left transition-all group cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <BookOpen className="w-4 h-4 text-[#174F91]" />
+                  <span className="text-sm font-bold text-[#1F211F]">Blogs</span>
+                </div>
+                <ArrowUpRight className="w-3.5 h-3.5 text-[#5C5F5B] group-hover:text-[#1F211F]" />
+              </button>
+
+              {/* 3. Open Source */}
+              <button
+                onClick={() => scrollToSection("open-source")}
+                className="p-3.5 rounded-2xl bg-[#F8F5ED] hover:bg-[#FFD66B]/35 border border-[#E4DFD3] hover:border-[#EFB323] flex items-center justify-between text-left transition-all group cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <GitPullRequest className="w-4 h-4 text-[#174F91]" />
+                  <span className="text-sm font-bold text-[#1F211F]">Open Source</span>
+                </div>
+                <ArrowUpRight className="w-3.5 h-3.5 text-[#5C5F5B] group-hover:text-[#1F211F]" />
+              </button>
+
+              {/* 4. Resume */}
+              <button
+                id="download-resume-btn"
+                onClick={() => setResumeModalOpen(true)}
+                className="p-3.5 rounded-2xl bg-[#FFD66B]/35 hover:bg-[#EFB323] border border-[#EFB323] flex items-center justify-between text-left transition-all group cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <FileText className="w-4 h-4 text-[#1F211F]" />
+                  <span className="text-sm font-bold text-[#1F211F]">Resume</span>
+                </div>
+                <ArrowUpRight className="w-3.5 h-3.5 text-[#1F211F]" />
+              </button>
+
+              {/* 5. GitHub */}
+              <a
+                id="social-link-github"
+                href={ENGINEER_PROFILE.socials.github}
+                target="_blank"
+                rel="noreferrer"
+                className="p-3.5 rounded-2xl bg-[#F8F5ED] hover:bg-[#FFD66B]/35 border border-[#E4DFD3] hover:border-[#EFB323] flex items-center justify-between transition-all group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Code2 className="w-4 h-4 text-[#174F91]" />
+                  <span className="text-sm font-bold text-[#1F211F]">GitHub</span>
+                </div>
+                <ArrowUpRight className="w-3.5 h-3.5 text-[#5C5F5B] group-hover:text-[#1F211F]" />
+              </a>
+
+              {/* 6. LinkedIn */}
+              <a
+                id="social-link-linkedin"
+                href={ENGINEER_PROFILE.socials.linkedin}
+                target="_blank"
+                rel="noreferrer"
+                className="p-3.5 rounded-2xl bg-[#F8F5ED] hover:bg-[#FFD66B]/35 border border-[#E4DFD3] hover:border-[#EFB323] flex items-center justify-between transition-all group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Globe className="w-4 h-4 text-[#174F91]" />
+                  <span className="text-sm font-bold text-[#1F211F]">LinkedIn</span>
+                </div>
+                <ArrowUpRight className="w-3.5 h-3.5 text-[#5C5F5B] group-hover:text-[#1F211F]" />
+              </a>
+
+              {/* 7. LeetCode */}
+              <a
+                id="social-link-leetcode"
+                href={ENGINEER_PROFILE.socials.leetcode}
+                target="_blank"
+                rel="noreferrer"
+                className="p-3.5 rounded-2xl bg-[#F8F5ED] hover:bg-[#FFD66B]/35 border border-[#E4DFD3] hover:border-[#EFB323] flex items-center justify-between transition-all group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Code2 className="w-4 h-4 text-[#174F91]" />
+                  <span className="text-sm font-bold text-[#1F211F]">LeetCode</span>
+                </div>
+                <ArrowUpRight className="w-3.5 h-3.5 text-[#5C5F5B] group-hover:text-[#1F211F]" />
+              </a>
+
+              {/* 8. Personal Website */}
+              <a
+                id="social-link-website"
+                href={ENGINEER_PROFILE.socials.website}
+                target="_blank"
+                rel="noreferrer"
+                className="p-3.5 rounded-2xl bg-[#F8F5ED] hover:bg-[#FFD66B]/35 border border-[#E4DFD3] hover:border-[#EFB323] flex items-center justify-between transition-all group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Globe className="w-4 h-4 text-[#174F91]" />
+                  <span className="text-sm font-bold text-[#1F211F]">Personal Website</span>
+                </div>
+                <ArrowUpRight className="w-3.5 h-3.5 text-[#5C5F5B] group-hover:text-[#1F211F]" />
+              </a>
+            </div>
+
+            {/* Hashnode Publication Link */}
+            <div className="mt-4 pt-4 border-t border-[#E4DFD3] flex items-center justify-between text-xs">
+              <span className="font-mono text-[#5C5F5B]">TECHNICAL WRITING ARCHIVE</span>
+              <a
+                id="social-link-hashnode"
+                href={ENGINEER_PROFILE.socials.hashnode}
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono font-bold text-[#174F91] hover:underline inline-flex items-center gap-1"
+              >
+                <span>Hashnode (@Bhavadharani412)</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Small Box Referring to "Try the Chatbot" & Linking to Bhava 2.0 (5 cols) */}
+        <div className="lg:col-span-5">
+          <div className="p-6 sm:p-8 rounded-3xl bg-[#FFFDF8] border border-[#E4DFD3] shadow-[0_6px_24px_rgba(31,33,31,0.03)] flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between border-b border-[#E4DFD3] pb-3.5 mb-5">
+                <span className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-[#174F91] font-bold">
+                  <Sparkles className="w-3.5 h-3.5 text-[#EFB323]" />
+                  <span>TRY THE CHATBOT</span>
+                </span>
+                <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#FFD66B]/60 text-[#1F211F] border border-[#EFB323]">
+                  BHAVA 2.0
+                </span>
+              </div>
+
+              <h3
+                className="text-2xl font-bold text-[#1F211F] tracking-tight mb-2.5"
+                style={{ fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" }}
+              >
+                Curious about my work? Ask{" "}
+                <span className="font-serif-italic font-normal text-[#174F91]">
+                  Bhava 2.0
+                </span>
+              </h3>
+
+              <p className="text-xs sm:text-sm text-[#5C5F5B] leading-relaxed mb-6">
+                Instead of filling out a static form, you can chat directly with{" "}
+                <strong className="text-[#1F211F] font-semibold">Bhava 2.0</strong> — my conversational digital twin
+                grounded in my projects, engineering architecture, skills, and internship experience.
+              </p>
+            </div>
+
+            <div className="space-y-2.5">
+              <button
+                id="contact-try-chatbot-btn"
+                type="button"
+                onClick={handleOpenBhavaChat}
+                className="w-full inline-flex items-center justify-between px-5 py-3.5 rounded-2xl bg-[#EFB323] hover:bg-[#FFD66B] text-[#1F211F] font-bold text-xs sm:text-sm transition-all shadow-[0_6px_18px_rgba(239,179,35,0.25)] cursor-pointer border border-[#1F211F]/10"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Try the Chatbot · Open Bhava 2.0</span>
+                </span>
+                <ArrowUpRight className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => scrollToSection("home")}
+                className="w-full inline-flex items-center justify-between px-4 py-2.5 rounded-xl bg-[#F8F5ED] hover:bg-[#FFD66B]/30 text-[#174F91] border border-[#E4DFD3] text-xs font-mono font-semibold transition-colors cursor-pointer"
+              >
+                <span>Explore Bhava 2.0 Digital Twin</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -224,56 +311,63 @@ export const Contact: React.FC = () => {
       {/* Resume Quick Inspection Modal */}
       <AnimatePresence>
         {resumeModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#102A36]/40 backdrop-blur-xs">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1F211F]/45 backdrop-blur-xs"
+            onClick={() => setResumeModalOpen(false)}
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-lg bg-[#FFFDF7] border border-[#D9DDD7] rounded-3xl p-6 sm:p-8 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-lg bg-[#FFFDF8] border border-[#E4DFD3] rounded-3xl p-6 sm:p-8 shadow-2xl"
             >
-              <div className="flex items-center justify-between border-b border-[#D9DDD7]/80 pb-3 mb-5">
-                <span className="font-mono text-xs text-[#1268A3] font-semibold">
-                  BHAVADHARANI // CURRICULUM VITAE
+              <div className="flex items-center justify-between border-b border-[#E4DFD3] pb-3 mb-5">
+                <span className="font-mono text-xs text-[#174F91] font-bold">
+                  BHAVADHARANI // CURRICULUM VITAE SUMMARY
                 </span>
                 <button
                   onClick={() => setResumeModalOpen(false)}
-                  className="text-xs font-mono text-[#61727A] hover:text-[#102A36]"
+                  className="text-xs font-mono text-[#5C5F5B] hover:text-[#1F211F] cursor-pointer"
                 >
                   [ESC]
                 </button>
               </div>
 
-              <div className="space-y-4 text-xs sm:text-sm text-[#102A36]/90 leading-relaxed font-mono">
+              <div className="space-y-3.5 text-xs sm:text-sm text-[#1F211F]/90 leading-relaxed font-mono">
                 <p>
-                  <strong>ROLE:</strong> Software Engineer (Backend, Dev Tools, Practical AI)
+                  <strong>NAME:</strong> Bhavadharani K
                 </p>
                 <p>
-                  <strong>EDUCATION:</strong> B.Tech Information Technology (Sep 2023 – Present)
+                  <strong>ROLE:</strong> Software Engineer (Backend Systems, Dev Tools, Practical AI)
                 </p>
                 <p>
-                  <strong>PROGRAMS:</strong> Infosys Pragati (Cohort 3), McKinsey Forward, Synergy Marine Group Intern
+                  <strong>EDUCATION:</strong> B.Tech Information Technology, Nandha Engineering College (Sep 2023 – Present)
                 </p>
                 <p>
-                  <strong>LEADERSHIP:</strong> Founder, DEVS NEC student developer community
+                  <strong>EXPERIENCE & PROGRAMS:</strong> Synergy Marine Group Project Intern (Project Neptune SAP S/4HANA UAT), Infosys Pragati Cohort 3, Aspire Leaders Program, McKinsey Forward
                 </p>
                 <p>
-                  <strong>KEY TECH:</strong> Java, Python, TypeScript, React, Next.js, FastAPI, PostgreSQL, Docker
+                  <strong>LEADERSHIP:</strong> Founder & Mentor, DEVS NEC Student Developer Community
+                </p>
+                <p>
+                  <strong>KEY STACK:</strong> Java, Python, TypeScript, Rust, Kotlin, React, FastAPI, Node.js, Yjs CRDTs, PostgreSQL, SQLite, Groq API
                 </p>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-[#D9DDD7]/80 flex justify-end gap-2">
+              <div className="mt-6 pt-4 border-t border-[#E4DFD3] flex justify-end gap-2.5">
                 <button
                   onClick={() => setResumeModalOpen(false)}
-                  className="px-4 py-2 text-xs font-medium text-[#61727A] hover:text-[#102A36]"
+                  className="px-4 py-2 text-xs font-semibold text-[#5C5F5B] hover:text-[#1F211F] cursor-pointer"
                 >
                   Close
                 </button>
                 <a
                   href={`mailto:${ENGINEER_PROFILE.email}?subject=Resume%20Request%20for%20Bhavadharani`}
-                  className="px-4 py-2 text-xs font-semibold rounded-xl bg-[#F4C928] text-[#102A36] hover:bg-[#FFD84A] transition-colors inline-flex items-center gap-1.5"
+                  className="px-5 py-2 text-xs font-bold rounded-full bg-[#EFB323] text-[#1F211F] hover:bg-[#FFD66B] transition-colors inline-flex items-center gap-1.5"
                 >
                   <Mail className="w-3.5 h-3.5" />
-                  <span>Request Full PDF</span>
+                  <span>Request Full Resume PDF</span>
                 </a>
               </div>
             </motion.div>
