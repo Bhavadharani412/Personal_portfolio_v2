@@ -1,3 +1,5 @@
+import { apiUrl } from "./api";
+
 export type AllowedEventType =
   | "page_view"
   | "project_view"
@@ -8,7 +10,8 @@ export type AllowedEventType =
   | "contact_click"
   | "chat_started"
   | "chat_message"
-  | "chat_response";
+  | "chat_response"
+  | "chat_feedback";
 
 export type AttributionSource = "linkedin" | "github" | "resume" | "application" | "direct";
 
@@ -25,43 +28,62 @@ interface AttributionData {
 export function getOrCreateSessionId(): string {
   if (typeof window === "undefined") return "ssr_session";
 
-  let sessionId = localStorage.getItem(SESSION_KEY);
-  if (!sessionId) {
-    sessionId = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    localStorage.setItem(SESSION_KEY, sessionId);
+  let id = sessionStorage.getItem(SESSION_KEY);
+  if (!id) {
+    const uuid =
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    id = `sess_${uuid}`;
+    sessionStorage.setItem(SESSION_KEY, id);
   }
-  return sessionId;
+  return id;
+}
+
+function detectSource(): AttributionSource {
+  const params = new URLSearchParams(window.location.search);
+  const utm = params.get("utm_source")?.toLowerCase();
+  if (utm && ["linkedin", "github", "resume", "application"].includes(utm)) {
+    return utm as AttributionSource;
+  }
+
+  let host = "";
+  try {
+    host = document.referrer ? new URL(document.referrer).hostname : "";
+  } catch {
+    /* ignore */
+  }
+
+  if (host.endsWith("linkedin.com") || host === "lnkd.in") return "linkedin";
+  if (host.endsWith("github.com")) return "github";
+  return "direct";
 }
 
 export function getAttributionData(): AttributionData {
   if (typeof window === "undefined") return { source: "direct" };
 
-  const stored = localStorage.getItem(ATTRIBUTION_KEY);
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch {
-      // Fallback
+  const params = new URLSearchParams(window.location.search);
+  const hasUtmSource = params.has("utm_source");
+
+  if (!hasUtmSource) {
+    const stored = sessionStorage.getItem(ATTRIBUTION_KEY);
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        // Fallback to recomputing
+      }
     }
   }
 
-  // Parse URL search params on initial landing
-  const params = new URLSearchParams(window.location.search);
-  const rawSource = params.get("utm_source")?.toLowerCase();
-
-  let source: AttributionSource = "direct";
-  if (rawSource && ["linkedin", "github", "resume", "application"].includes(rawSource)) {
-    source = rawSource as AttributionSource;
-  }
-
   const attribution: AttributionData = {
-    source,
+    source: detectSource(),
     medium: params.get("utm_medium") || undefined,
     campaign: params.get("utm_campaign") || undefined,
     landing_page: window.location.pathname || "/",
   };
 
-  localStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
+  sessionStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
   return attribution;
 }
 
@@ -85,11 +107,12 @@ export async function trackEvent(
       attribution,
     };
 
-    // Best-effort fire-and-forget fetch
-    fetch("/api/events", {
+    // Best-effort fire-and-forget fetch with keepalive so navigation doesn't drop events
+    fetch(apiUrl("/api/events"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      keepalive: true,
     }).catch(() => {
       // Silently ignore analytics network failures
     });

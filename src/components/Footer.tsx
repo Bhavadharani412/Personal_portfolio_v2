@@ -1,8 +1,12 @@
 import React, { useState } from "react";
-import { ArrowUp, ShieldCheck, X } from "lucide-react";
+import { ArrowUp, ShieldCheck, Cpu, X } from "lucide-react";
 import { ENGINEER_PROFILE } from "../data/portfolioData";
 
-export const Footer: React.FC = () => {
+interface FooterProps {
+  onNavigateEngineering?: () => void;
+}
+
+export const Footer: React.FC<FooterProps> = ({ onNavigateEngineering }) => {
   const [privacyOpen, setPrivacyOpen] = useState(false);
 
   const scrollToTop = () => {
@@ -77,7 +81,7 @@ export const Footer: React.FC = () => {
         {/* Standard & External Links */}
         <div className="md:col-span-3 space-y-2.5">
           <div className="font-mono text-[10px] uppercase tracking-wider text-[#174F91] font-bold">
-            Profiles & Privacy
+            Profiles, Architecture & Privacy
           </div>
           <div className="flex flex-col gap-2 text-xs font-medium text-[#1F211F]">
             <a href={ENGINEER_PROFILE.socials.github} target="_blank" rel="noreferrer" className="hover:text-[#174F91]">
@@ -89,6 +93,15 @@ export const Footer: React.FC = () => {
             <a href={ENGINEER_PROFILE.socials.hashnode} target="_blank" rel="noreferrer" className="hover:text-[#174F91]">
               Hashnode ↗
             </a>
+            {onNavigateEngineering && (
+              <button
+                onClick={onNavigateEngineering}
+                className="inline-flex items-center gap-1.5 text-left text-[#174F91] hover:text-[#1F211F] font-semibold cursor-pointer"
+              >
+                <Cpu className="w-3.5 h-3.5 text-[#EFB323]" />
+                <span>How This Site Works (/engineering)</span>
+              </button>
+            )}
             <button
               onClick={() => setPrivacyOpen(true)}
               className="inline-flex items-center gap-1.5 text-left text-[#5C5F5B] hover:text-[#1F211F] cursor-pointer"
@@ -119,7 +132,7 @@ export const Footer: React.FC = () => {
         </button>
       </div>
 
-      {/* Lightweight Privacy Note Modal */}
+      {/* Privacy & Data Handling Notice Modal */}
       {privacyOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1F211F]/45 backdrop-blur-xs"
@@ -131,7 +144,7 @@ export const Footer: React.FC = () => {
           >
             <div className="flex items-center justify-between border-b border-[#E4DFD3] pb-2.5">
               <span className="font-mono text-xs font-bold text-[#174F91]">
-                PRIVACY & DATA HANDLING
+                PRIVACY & DATA HANDLING NOTICE
               </span>
               <button
                 onClick={() => setPrivacyOpen(false)}
@@ -140,9 +153,20 @@ export const Footer: React.FC = () => {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-xs text-[#5C5F5B] leading-relaxed">
-              This portfolio uses lightweight anonymous session events to keep the Bhava 2.0 digital twin responsive and reliable. No third-party ad trackers or invasive cookies are used.
-            </p>
+            <div className="space-y-2 text-xs text-[#5C5F5B] leading-relaxed">
+              <p>
+                <strong className="text-[#1F211F]">What is collected:</strong> A random, non-persistent{" "}
+                <code className="font-mono">sessionStorage</code> session ID (cleared when you close the tab), referral/UTM source tags, and anonymous interaction events (such as project views or link clicks). No cookies or third-party ad trackers are used.
+              </p>
+              <p>
+                <strong className="text-[#1F211F]">AI Chat Processing:</strong> Questions submitted to Bhava 2.0 are sent through a Cloudflare Worker to{" "}
+                <strong className="text-[#1F211F]">Groq</strong> for LLM inference and logged in Cloudflare D1 to monitor answer quality and latency.
+              </p>
+              <p>
+                <strong className="text-[#1F211F]">30-Day Retention Purge:</strong> Raw chat question content in D1 is automatically scrubbed and replaced with{" "}
+                <code className="font-mono">[purged]</code> after 30 days via a scheduled Worker cron job.
+              </p>
+            </div>
           </div>
         </div>
       )}

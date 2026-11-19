@@ -11,6 +11,7 @@ export const ALLOWED_EVENTS: Set<AllowedEventType> = new Set([
   "chat_started",
   "chat_message",
   "chat_response",
+  "chat_feedback",
 ]);
 
 export const ALLOWED_SOURCES = new Set([

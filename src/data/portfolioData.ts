@@ -235,7 +235,7 @@ export const PROJECTS_DATA: Project[] = [
     },
   },
   {
-    id: "personal-portfolio-digital-twin",
+    id: "digital-twin-portfolio",
     title: "PERSONAL ENGINEERING PORTFOLIO WITH DIGITAL TWIN",
     category: "AI / Interactive Engineering Portfolio",
     problem: "A traditional portfolio is primarily a static presentation layer and provides limited interaction with the underlying engineering context.",

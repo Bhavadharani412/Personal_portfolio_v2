@@ -1,20 +1,47 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "personal-portfolio-api",
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "portfolio-api",
   "main": "worker/index.ts",
   "compatibility_date": "2026-03-01",
   "observability": {
     "enabled": true
   },
+  "triggers": {
+    "crons": ["0 3 * * *"]
+  },
+  // Uncomment after moving bhavadharani.me DNS to Cloudflare in Phase 5:
+  // "routes": [{ "pattern": "api.bhavadharani.me", "custom_domain": true }],
+  "vars": {
+    "ALLOWED_ORIGINS": "https://bhavadharani.me,https://www.bhavadharani.me",
+    "RATE_LIMIT_PER_MINUTE": "10",
+    "GROQ_MODEL": "openai/gpt-oss-20b",
+    "DAILY_CHAT_BUDGET": "200",
+    "CHAT_ENABLED": "true"
+  },
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "portfolio_db",
-      "database_id": "local-portfolio-d1"
+      "database_name": "portfolio-db",
+      "database_id": "REPLACE_WITH_PRODUCTION_D1_ID"
     }
   ],
-  "vars": {
-    "ALLOWED_ORIGINS": "*",
-    "RATE_LIMIT_PER_MINUTE": "10"
+  "env": {
+    "staging": {
+      "name": "portfolio-api-staging",
+      "vars": {
+        "ALLOWED_ORIGINS": "https://personal-portfolio-v2.vercel.app,http://localhost:3000",
+        "RATE_LIMIT_PER_MINUTE": "10",
+        "GROQ_MODEL": "openai/gpt-oss-20b",
+        "DAILY_CHAT_BUDGET": "50",
+        "CHAT_ENABLED": "true"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "portfolio-db-staging",
+          "database_id": "REPLACE_WITH_STAGING_D1_ID"
+        }
+      ]
+    }
   }
 }

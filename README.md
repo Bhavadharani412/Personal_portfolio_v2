@@ -72,19 +72,20 @@ A full-stack, telemetry-backed web product that combines:
 
 ### Feature 3: Traffic Attribution System
 - **User Problem**: Unable to measure which outreach channels (LinkedIn messages, job applications, GitHub profile) drive recruiter visits.
-- **Product Behavior**: Reads URL query parameters on initial page load and attaches channel data to all subsequent analytics events.
+- **Product Behavior**: Reads URL query parameters on page load and attaches channel data to all subsequent analytics events in that tab session.
 - **Engineering**:
-  - `getAttribution()` in `src/utils/analytics.ts` extracts `utm_source`, `utm_medium`, `utm_campaign`, and `landing_page`.
-  - Persists attribution tokens in `sessionStorage` and logs to D1 `sessions` table upon initial event receipt.
-- **Value**: Quantifies top-of-funnel recruiter acquisition without third-party tracking scripts or cookies.
+  - `getAttributionData()` in `src/utils/analytics.ts` extracts `utm_source`, `utm_medium`, `utm_campaign`, and `landing_page`, with fallback referrer detection (`linkedin.com`, `lnkd.in`, `github.com`).
+  - Persists session ID (`crypto.randomUUID()`) and attribution in `sessionStorage` (recomputing whenever a new `utm_source` is present in the URL) and logs to D1 `sessions` table upon initial event receipt.
+- **Value**: Quantifies top-of-funnel recruiter acquisition without cookies, persistent `localStorage` identifiers, or third-party tracking scripts.
 
-### Feature 4: Edge Rate Limiting & Protection
+### Feature 4: Edge Rate Limiting, Fail-Closed Origin Checks & Daily Budget Kill Switch
 - **User Problem**: Public AI endpoints can be spammed, leading to LLM quota exhaustion or service unavailability.
-- **Product Behavior**: Allows normal visitor dialogue while gracefully throttling excessive automated requests with a clear, polite status message.
+- **Product Behavior**: Rejects unauthorized cross-origin POST requests, throttles per-IP bursts, and enforces a hard daily D1 budget cap with a polite status message.
 - **Engineering**:
-  - In-memory sliding window rate limiter (`worker/rateLimiter.ts`) enforcing a default threshold of 10 requests/minute per session/IP.
-  - Returns HTTP 429 (`rate_limit_exceeded`) when limits are breached.
-- **Value**: Ensures continuous uptime and API security on free-tier infrastructure.
+  - Fail-closed `Origin` validation against `ALLOWED_ORIGINS` on all `POST` endpoints (`403 Forbidden`) and a 4 KB request body cap (`readJson`).
+  - In-memory sliding-window burst limiter (`worker/rateLimiter.ts`) keyed on `CF-Connecting-IP` (default 10 requests/minute).
+  - Atomic daily counter in Cloudflare D1 (`daily_usage` table) enforcing `DAILY_CHAT_BUDGET` plus an instant `CHAT_ENABLED` kill switch.
+- **Value**: Ensures continuous uptime and predictable $0 free-tier operation.
 
 ---
 
@@ -148,12 +149,14 @@ A full-stack, telemetry-backed web product that combines:
 4. **Sanitization**: Output is cleaned of markdown code block fences, unicode hyphens, missing spacing, and meta-phrases before being returned.
 
 ### Automated Evaluation Benchmark (`scripts/eval-chatbot.ts`)
-The repository includes an automated evaluation suite testing live AI inference against 7 evaluation benchmarks in `chatbot/evaluation/questions.json`:
+The repository includes an automated evaluation suite testing against 9 evaluation benchmarks in `chatbot/evaluation/questions.json`:
 - **Factual Accuracy**: Verifies project specs (Dev Explain AI, AST, FastAPI).
 - **Architecture**: Validates technical details (Collaborative Text Editor, Yjs, CRDTs).
 - **Skills & Experience**: Checks technology stack and past internship responsibilities.
-- **Unsupported Claims**: Confirms that non-existent projects (e.g. Go blockchain) are explicitly rejected.
-- **Adversarial Input**: Ensures system secrets and keys are never leaked under prompt injection attacks.
+- **Unsupported Claims**: Confirms that non-existent projects or employers (e.g. Go blockchain, working at Google) are explicitly rejected.
+- **Adversarial Input**: Ensures system prompts, secrets, and keys are never leaked under prompt injection attacks (`Ignore your instructions...`).
+
+> **Offline vs. Live Evaluation Label:** In pull-request CI (where `GROQ_API_KEY` is not exposed), `npm run eval-chatbot` runs in **Offline Deterministic Mode** (verifying retrieval grounding, prompt-injection guards, and fallback behavior). Live model-verified evaluation runs with `GROQ_API_KEY` via `.github/workflows/nightly-eval.yml`.
 
 Run evaluation suite:
 ```bash
@@ -208,7 +211,7 @@ CREATE TABLE chat_messages (
 ```
 
 ### Allowed Telemetry Events (`ALLOWED_EVENTS`)
-`page_view` • `project_view` • `github_click` • `live_demo_click` • `article_click` • `resume_click` • `contact_click` • `chat_started` • `chat_message` • `chat_response`
+`page_view` • `project_view` • `github_click` • `live_demo_click` • `article_click` • `resume_click` • `contact_click` • `chat_started` • `chat_message` • `chat_response` • `chat_feedback`
 
 ---
 
@@ -320,9 +323,13 @@ Only environment variables that actively exist in the system are documented:
 
 | Variable | Scope | Purpose | Default |
 |---|---|---|---|
-| `GROQ_API_KEY` | Server / Worker | Secret key for Groq LLM API inference | *Required for live AI* |
-| `ALLOWED_ORIGINS` | Worker Env / `.env` | Access-Control-Allow-Origin header restriction | `*` |
-| `RATE_LIMIT_PER_MINUTE` | Worker Env / `.env` | Max requests allowed per sliding window minute | `10` |
+| `VITE_API_BASE` | Frontend (Build-time) | Base URL for Cloudflare Worker API (empty locally for `server.ts` proxy) | `""` |
+| `GROQ_API_KEY` | Server / Worker Secret | Secret key for Groq LLM API inference | *Required for live AI* |
+| `GROQ_MODEL` | Worker Env | Groq model identifier | `openai/gpt-oss-20b` |
+| `ALLOWED_ORIGINS` | Worker Env / `.env` | Comma-separated allowed `Origin` list (fail-closed on POST) | `https://bhavadharani.me,...` |
+| `RATE_LIMIT_PER_MINUTE` | Worker Env / `.env` | Max requests allowed per IP per sliding-window minute | `10` |
+| `DAILY_CHAT_BUDGET` | Worker Env | Max global Groq chat calls per UTC day stored in D1 `daily_usage` | `200` (`50` staging) |
+| `CHAT_ENABLED` | Worker Env | Instant kill switch (`"true"` / `"false"`) for chatbot inference | `true` |
 | `PORT` | Local Express Server | Port for `server.ts` dev execution | `3000` |
 
 ---
