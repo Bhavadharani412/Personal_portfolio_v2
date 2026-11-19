@@ -297,6 +297,7 @@ contact_click
 chat_started
 chat_message
 chat_response
+chat_feedback
 ```
 
 Each event should contain only information needed for analysis.
@@ -494,15 +495,11 @@ The combination provides enough information to identify both user behavior and s
 
 ## 18. Privacy-Conscious Retention
 
-Recommended approach:
+Configured policy:
 
-- Keep aggregate metrics longer.
-- Keep raw event records only as long as useful.
-- Keep raw chatbot questions for a limited period.
-- Do not retain data merely because it is technically possible.
-- Revisit retention as actual usage grows.
-
-Retention periods should be configured explicitly before production launch.
+- Session IDs and attribution live in `sessionStorage` (cleared when the browser tab closes), never in permanent cookies or `localStorage`.
+- When a visitor arrives with a `utm_source` parameter, attribution is recomputed immediately so tagged links always override stale session state.
+- A daily Cloudflare Worker cron trigger (`0 3 * * *`) executes `scheduled()` in `worker/index.ts`, replacing `chat_messages.content` older than 30 days with `'[purged]'` while preserving aggregate latency and status counts.
 
 ---
 

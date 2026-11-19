@@ -1,5 +1,3 @@
-import { ChatHistoryTurn } from "./types";
-
 const GROQ_SYSTEM_PROMPT = `You are "Bhava 2.0", the conversational digital twin of Bhavadharani, a software engineer specializing in backend systems, developer tools, and practical AI.
 You communicate with confidence, warmth, clarity, and technical authority in the first person as Bhavadharani ("I build...", "My journey started...", "In my project...").
 
@@ -24,6 +22,31 @@ export const FALLBACK_MESSAGES = {
   unavailable: "I'm temporarily unavailable. Please try asking again in a moment.",
   rateLimited: "I've hit a temporary limit. Please wait a moment before asking another question.",
 };
+
+// High-risk ungrounded employer or technology claims that must never appear unless explicitly present in evidence
+const UNGROUNDED_CLAIM_PATTERNS: { term: string; regex: RegExp }[] = [
+  { term: "kubernetes", regex: /\bkubernetes\b/i },
+  { term: "redis cluster", regex: /\bredis cluster\b/i },
+  { term: "kafka", regex: /\bkafka\b/i },
+  { term: "ruby on rails", regex: /\bruby on rails\b/i },
+  { term: "y combinator", regex: /\by combinator\b/i },
+  { term: "worked at google", regex: /\b(worked|interned|employed)\s+(at|for)\s+google\b/i },
+  { term: "worked at meta", regex: /\b(worked|interned|employed)\s+(at|for)\s+(meta|facebook)\b/i },
+  { term: "worked at amazon", regex: /\b(worked|interned|employed)\s+(at|for)\s+amazon\b/i },
+];
+
+export function verifyGroundedClaims(reply: string, evidence: string | null): string {
+  if (!reply || !evidence) return FALLBACK_MESSAGES.insufficientInfo;
+  const lowerEvidence = evidence.toLowerCase();
+
+  for (const check of UNGROUNDED_CLAIM_PATTERNS) {
+    if (check.regex.test(reply) && !lowerEvidence.includes(check.term)) {
+      return FALLBACK_MESSAGES.insufficientInfo;
+    }
+  }
+
+  return reply;
+}
 
 export function sanitizeGroqOutput(rawOutput: string | null | undefined): string {
   if (!rawOutput || !rawOutput.trim()) {
@@ -66,13 +89,21 @@ export async function callGroqLLM(
   apiKey: string | undefined,
   userMessage: string,
   evidence: string | null,
-  history: ChatHistoryTurn[] = [],
   modelName: string = process.env.GROQ_MODEL || "openai/gpt-oss-20b"
 ): Promise<{ reply: string; latency_ms: number; status: "success" | "fallback" | "error" }> {
   const startTime = Date.now();
 
   // If no evidence retrieved, return controlled fallback immediately without calling Groq
   if (!evidence) {
+    return {
+      reply: FALLBACK_MESSAGES.insufficientInfo,
+      latency_ms: Date.now() - startTime,
+      status: "fallback",
+    };
+  }
+
+  // Reject prompt-injection attempts asking to ignore instructions or dump system prompt
+  if (/\b(ignore (all |your )?(previous )?instructions|print your (system )?prompt|reveal your system prompt)\b/i.test(userMessage)) {
     return {
       reply: FALLBACK_MESSAGES.insufficientInfo,
       latency_ms: Date.now() - startTime,
@@ -88,17 +119,6 @@ export async function callGroqLLM(
       status: "fallback",
     };
   }
-
-  let prompt = `${GROQ_SYSTEM_PROMPT}\n\n=== RELEVANT BACKGROUND EVIDENCE ===\n${evidence}\n===================================\n\n`;
-
-  if (history && history.length > 0) {
-    prompt += `Previous conversation:\n`;
-    for (const turn of history.slice(-4)) {
-      prompt += `${turn.role === "user" ? "Visitor" : "Bhava 2.0"}: ${turn.text}\n`;
-    }
-  }
-
-  prompt += `Visitor: ${userMessage}\nBhava 2.0:`;
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s timeout
@@ -135,7 +155,8 @@ export async function callGroqLLM(
 
     const data = (await res.json()) as any;
     const rawContent = data.choices?.[0]?.message?.content;
-    const reply = sanitizeGroqOutput(rawContent);
+    const sanitized = sanitizeGroqOutput(rawContent);
+    const reply = verifyGroundedClaims(sanitized, evidence);
 
     return {
       reply,

@@ -1,13 +1,20 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Sparkles, X, Send, RotateCcw, CheckCheck, MessageSquare } from "lucide-react";
+import { Sparkles, X, Send, RotateCcw, CheckCheck, MessageSquare, ThumbsUp, ThumbsDown, FileText } from "lucide-react";
 import { ChatMessage } from "../types";
 import { getOrCreateSessionId, trackEvent } from "../utils/analytics";
+import { apiUrl } from "../utils/api";
 
 interface ChatbotProps {
   isOpen: boolean;
   onToggle: () => void;
 }
+
+const REPO_BLOB_BASE = "https://github.com/Bhavadharani412/Personal_portfolio_v2/blob/main/";
+
+const formatSourceLabel = (sourcePath: string): string => {
+  return sourcePath.replace(/^content\//, "").replace(/\.md$/, "");
+};
 
 const getFormattedTime = () => {
   try {
@@ -152,6 +159,17 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
     }
   }, [messages, isOpen]);
 
+  const handleFeedback = (messageId: string, rating: "up" | "down") => {
+    setMessages((prev) =>
+      prev.map((m) => (m.id === messageId ? { ...m, feedback: rating } : m))
+    );
+    trackEvent("chat_feedback", {
+      chat_session_id: chatSessionId,
+      message_id: messageId,
+      rating,
+    });
+  };
+
   const handleSendMessage = async (textToSend?: string) => {
     const message = textToSend || inputMessage;
     if (!message.trim() || isLoading) return;
@@ -176,14 +194,13 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
     trackEvent("chat_message", { chat_session_id: chatSessionId, message_length: trimmedMsg.length });
 
     try {
-      const response = await fetch("/api/chat", {
+      const response = await fetch(apiUrl("/api/chat"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: trimmedMsg,
           session_id: sessionId,
           chat_session_id: chatSessionId,
-          history: newMessages.slice(-6).map((m) => ({ role: m.role, text: m.text })),
         }),
       });
 
@@ -195,7 +212,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
           {
             id: `bot-${Date.now()}`,
             role: "assistant",
-            text: "I've hit a temporary rate limit. Please wait a moment before sending another message.",
+            text: data.reply || "I've hit a temporary rate limit. Please wait a moment before sending another message.",
             timestamp: getFormattedTime(),
           },
         ]);
@@ -215,6 +232,8 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
         setChatSessionId(data.chat_session_id);
       }
 
+      const sources: string[] = Array.isArray(data.sources) ? data.sources : [];
+
       setMessages((prev) => [
         ...prev,
         {
@@ -222,10 +241,11 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
           role: "assistant",
           text: replyText,
           timestamp: getFormattedTime(),
+          sources,
         },
       ]);
 
-      trackEvent("chat_response", { chat_session_id: chatSessionId, status: "success" });
+      trackEvent("chat_response", { chat_session_id: chatSessionId, status: "success", sources_count: sources.length });
     } catch (err) {
       console.error("Chat API call failed:", err);
       setMessages((prev) => [
@@ -330,6 +350,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
 
               {messages.map((msg) => {
                 const isUser = msg.role === "user";
+                const isInitial = msg.id.startsWith("init-");
                 return (
                   <div
                     key={msg.id}
@@ -344,14 +365,67 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle }) => {
                     >
                       <FormattedChatMessage text={msg.text} />
 
-                      {/* Timestamp & Read Receipt Row */}
+                      {/* Grounded Source Links (Phase 8.2) */}
+                      {!isUser && msg.sources && msg.sources.length > 0 && (
+                        <div className="mt-2 pt-1.5 border-t border-[#E4DFD3]/70 flex flex-wrap items-center gap-1">
+                          <span className="text-[9px] font-mono uppercase tracking-wider text-[#5C5F5B] mr-0.5">
+                            Sources:
+                          </span>
+                          {msg.sources.map((src) => (
+                            <a
+                              key={src}
+                              href={`${REPO_BLOB_BASE}${src}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#F8F5ED] hover:bg-[#FFD66B]/40 text-[#174F91] border border-[#E4DFD3] transition-colors"
+                              title={`View verified source: ${src}`}
+                            >
+                              <FileText className="w-2.5 h-2.5 shrink-0" />
+                              <span>{formatSourceLabel(src)}</span>
+                            </a>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Timestamp, Feedback Controls & Read Receipt Row */}
                       <div
-                        className={`mt-1.5 flex items-center justify-end gap-1 text-[9px] font-mono ${
+                        className={`mt-1.5 flex items-center justify-between gap-2 text-[9px] font-mono ${
                           isUser ? "text-[#1F211F]/70" : "text-[#5C5F5B]"
                         }`}
                       >
-                        <span>{msg.timestamp}</span>
-                        {isUser && <CheckCheck className="w-3 h-3 text-[#174F91]" />}
+                        {!isUser && !isInitial ? (
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleFeedback(msg.id, "up")}
+                              className={`p-1 rounded hover:bg-[#F8F5ED] transition-colors cursor-pointer ${
+                                msg.feedback === "up" ? "text-[#174F91] font-bold" : "text-[#5C5F5B]/70"
+                              }`}
+                              title="Helpful answer"
+                              aria-label="Mark answer helpful"
+                            >
+                              <ThumbsUp className="w-2.5 h-2.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleFeedback(msg.id, "down")}
+                              className={`p-1 rounded hover:bg-[#F8F5ED] transition-colors cursor-pointer ${
+                                msg.feedback === "down" ? "text-[#EFB323] font-bold" : "text-[#5C5F5B]/70"
+                              }`}
+                              title="Unclear answer"
+                              aria-label="Mark answer unclear"
+                            >
+                              <ThumbsDown className="w-2.5 h-2.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <span />
+                        )}
+
+                        <div className="flex items-center gap-1">
+                          <span>{msg.timestamp}</span>
+                          {isUser && <CheckCheck className="w-3 h-3 text-[#174F91]" />}
+                        </div>
                       </div>
                     </div>
                   </div>

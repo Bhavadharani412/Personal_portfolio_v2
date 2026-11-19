@@ -19,19 +19,21 @@ Visitor
    |
    | HTTPS
    v
-Vercel / Next.js
-   |-- Portfolio UI
+Vercel (React 19 + Vite SPA)
+   |-- Portfolio UI & /engineering trust page
    |-- Projects / writings
-   |-- Chat UI
-   `-- Analytics events
+   |-- Chat UI (Bhava 2.0 + source citations + feedback)
+   `-- Analytics events (apiUrl + keepalive)
           |
-          | API
+          | HTTPS API (VITE_API_BASE)
           v
-Cloudflare Worker
-   |-- validation
-   |-- rate limiting
-   |-- attribution
-   |-- chatbot orchestration
+Cloudflare Worker (worker/index.ts)
+   |-- fail-closed Origin validation & 4KB body cap
+   |-- IP rate limiting (CF-Connecting-IP)
+   |-- daily D1 budget kill switch (daily_usage)
+   |-- session-scoped attribution
+   |-- chatbot orchestration & claim verification
+   |-- 30-day scheduled retention purge cron
    |-- request IDs / logs
    |
    +------------+-------------+
@@ -40,8 +42,8 @@ Cloudflare Worker
 Cloudflare D1                Groq
 analytics + chat             LLM inference
 
-Repository Markdown
-   |---> Website content
+Repository Markdown (content/*.md)
+   |---> Website content (verified via validate-content CI sync)
    |---> Chatbot knowledge
    `---> Generated Tech Journey PDF
 ```
@@ -50,23 +52,23 @@ Repository Markdown
 
 | Layer | Technology | Responsibility |
 |---|---|---|
-| Frontend | Next.js / React | Portfolio UI |
+| Frontend | React 19 + Vite 6 + TypeScript | Portfolio SPA & `/engineering` trust layer |
 | Hosting | Vercel | Web deployment and delivery |
 | API | Cloudflare Workers | Server-side API boundary |
-| Database | Cloudflare D1 | Relational analytics/chat data |
+| Database | Cloudflare D1 | Relational analytics, chat data & daily budget |
 | AI | Groq | LLM inference |
 | Source control | GitHub | Code and content |
-| CI/CD | GitHub Actions | Test, validate, deploy |
+| CI/CD | GitHub Actions | Test, validate, deploy & smoke check |
 | Documents | Markdown + generated PDF | Source content and artifact |
-| Domain | Existing domain | Public portfolio address |
+| Domain | `bhavadharani.me` / `api.bhavadharani.me` | Public portfolio & edge API addresses |
 
 No Redis, vector database, separate backend server, or paid analytics platform is required initially.
 
 ## 4. Component Responsibilities
 
-### Next.js / Vercel
+### React + Vite / Vercel
 
-Responsible for rendering the portfolio, project pages, writing content, chatbot UI, attribution capture, and browser-side event collection.
+Responsible for rendering the portfolio, project details, writing content, `/engineering` architecture overview, chatbot UI, session-scoped attribution capture (`sessionStorage`), and browser-side event collection via `VITE_API_BASE`.
 
 It must never contain Groq keys, database credentials, or private analytics credentials.
 
@@ -183,6 +185,7 @@ contact_click
 chat_started
 chat_message
 chat_response
+chat_feedback
 ```
 
 Example visitor journey:

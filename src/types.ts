@@ -65,4 +65,6 @@ export interface ChatMessage {
   role: "user" | "assistant";
   text: string;
   timestamp: string;
+  sources?: string[];
+  feedback?: "up" | "down";
 }

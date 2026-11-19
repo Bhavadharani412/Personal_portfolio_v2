@@ -19,8 +19,9 @@ The implementation should demonstrate real engineering practice without pretendi
 ## 2. Repository Structure
 
 ```text
-portfolio/
+personal-portfolio-v2/
 ├── README.md
+├── SECURITY.md
 ├── docs/
 │   ├── architecture.md
 │   ├── engineering.md
@@ -33,16 +34,22 @@ portfolio/
 │   ├── skills.md
 │   ├── writing.md
 │   └── projects/
-├── app/
+├── src/
+│   ├── components/
+│   ├── data/
+│   └── utils/
 ├── worker/
 ├── chatbot/
 │   └── evaluation/
+├── analytics/
+│   └── queries.sql
 ├── migrations/
+├── scripts/
 └── .github/
     └── workflows/
 ```
 
-The exact Next.js directory structure may follow the existing repository. The important boundaries are UI, API, content, chatbot evaluation, database migrations, and CI/CD.
+The React 19 + Vite frontend lives in `src/` and talks to the Cloudflare Worker (`worker/`) via `src/utils/api.ts` (`VITE_API_BASE`). The important boundaries are UI, API, content, chatbot evaluation, database migrations, and CI/CD.
 
 ## 3. API Surface
 
@@ -61,13 +68,14 @@ Request:
 ```
 
 Responsibilities:
-- validate body
-- enforce message limits
-- rate limit
-- create/request correlation ID
-- retrieve relevant content
-- call Groq
-- record useful metadata
+- enforce `Origin` allow-list (`ALLOWED_ORIGINS`, fail-closed 403)
+- cap body size at 4 KB (`readJson`) and enforce 500-char message limit
+- rate limit by client IP (`CF-Connecting-IP`)
+- check daily budget in D1 (`daily_usage`) and `CHAT_ENABLED` kill switch
+- create request correlation ID
+- retrieve relevant portfolio evidence and cite source files (`sources`)
+- call Groq and run post-generation claim verification
+- record useful metadata non-blockingly via `ctx.waitUntil()`
 - return a safe response
 
 ### `POST /api/events`
@@ -80,22 +88,27 @@ Request:
   event_type,
   page,
   project_id,
-  metadata
+  metadata,
+  attribution
 }
 ```
 
 Responsibilities:
-- validate payload
-- validate event type
-- enforce metadata limits
-- store event
+- enforce `Origin` allow-list (`ALLOWED_ORIGINS`, fail-closed 403)
+- cap body size at 4 KB and validate payload & event type
+- enforce 2 KB metadata limit
+- store event non-blockingly in D1
 - fail non-destructively
 
 ### `GET /api/health`
 
-Provides a lightweight health check.
+Provides a lightweight health check including `build` SHA (`BUILD_SHA`).
 
 It must not expose secrets, credentials, internal stack traces, or sensitive configuration.
+
+### `GET /api/public-stats`
+
+Returns 30-day aggregate chatbot metrics (`window_days: 30`, `answered`, `avg_latency_ms`, `build`) cached for 5 minutes (`Cache-Control: public, max-age=300`) to power the `/engineering` live proof banner.
 
 ## 4. Database Model
 
@@ -150,7 +163,16 @@ created_at
 
 Stores information needed to understand chatbot usage and behavior.
 
-Raw chat content should have a limited retention policy where practical.
+Raw chat content has a 30-day retention policy enforced by a daily scheduled Worker cron job (`0 3 * * *`) that replaces `content` older than 30 days with `'[purged]'`.
+
+### `daily_usage`
+
+```text
+day
+chat_calls
+```
+
+Tracks daily Groq invocations in D1 so the Worker can enforce `DAILY_CHAT_BUDGET` globally across all edge isolates.
 
 ## 5. Data Relationships
 

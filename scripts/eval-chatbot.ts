@@ -14,8 +14,29 @@ interface TestCase {
   must_not_contain: string[];
 }
 
+function hasValidLiveKey(key: string | undefined): boolean {
+  if (!key) return false;
+  const trimmed = key.trim();
+  return (
+    trimmed.length > 0 &&
+    trimmed !== "your_groq_api_key" &&
+    trimmed !== "your_groq_api_key_here"
+  );
+}
+
 async function runEvaluation(): Promise<void> {
+  const forceOffline = process.argv.includes("--offline") || process.env.EVAL_OFFLINE === "true";
+  const isLiveGroq = !forceOffline && hasValidLiveKey(process.env.GROQ_API_KEY);
+  const effectiveApiKey = isLiveGroq ? process.env.GROQ_API_KEY : undefined;
+
   console.log("🤖 Running Chatbot Knowledge Evaluation Suite...");
+  if (isLiveGroq) {
+    console.log("🟢 Mode: LIVE GROQ MODEL-VERIFIED (GROQ_API_KEY present)");
+  } else {
+    console.log(
+      "🟡 Mode: OFFLINE DETERMINISTIC CHECK (No GROQ_API_KEY or --offline flag — verifies retrieval & fallback grounding only; NOT live model-verified)"
+    );
+  }
 
   const questionsPath = path.join(process.cwd(), "chatbot", "evaluation", "questions.json");
   if (!fs.existsSync(questionsPath)) {
@@ -34,11 +55,18 @@ async function runEvaluation(): Promise<void> {
 
     const retrievalResult = retrieveRelevantKnowledge(tc.question);
     const evidence = retrievalResult?.evidence || null;
+    const sources = retrievalResult?.sources || [];
 
-    const res = await callGroqLLM(process.env.GROQ_API_KEY, tc.question, evidence);
+    const res = await callGroqLLM(effectiveApiKey, tc.question, evidence);
     const responseText = res.reply;
 
     let testFailed = false;
+
+    // Verify expected source file retrieval for grounded categories
+    if (tc.source !== "none" && !sources.includes(tc.source)) {
+      console.error(`  ❌ Failed: Expected source "${tc.source}" was not in retrieved sources [${sources.join(", ")}]`);
+      testFailed = true;
+    }
 
     // Check must_not_contain
     for (const forbidden of tc.must_not_contain) {
@@ -65,7 +93,7 @@ async function runEvaluation(): Promise<void> {
 
     if (!testFailed) {
       console.log(`  ✅ Passed!`);
-      console.log(`  Response: "${responseText.substring(0, 120)}..."`);
+      console.log(`  Response: "${responseText.substring(0, 120).replace(/\n/g, " ")}..."`);
       passed++;
     } else {
       failed++;
@@ -73,7 +101,9 @@ async function runEvaluation(): Promise<void> {
   }
 
   console.log(`\n==========================================`);
-  console.log(`Evaluation Summary: ${passed} Passed, ${failed} Failed out of ${testCases.length} total.`);
+  console.log(
+    `Evaluation Summary (${isLiveGroq ? "LIVE MODEL-VERIFIED" : "OFFLINE RETRIEVAL CHECK"}): ${passed} Passed, ${failed} Failed out of ${testCases.length} total.`
+  );
 
   if (failed > 0) {
     process.exit(1);

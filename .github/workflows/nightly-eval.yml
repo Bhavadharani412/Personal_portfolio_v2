@@ -1,0 +1,30 @@
+name: Nightly Live Chatbot Evaluation
+
+on:
+  schedule:
+    - cron: '15 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  live-eval:
+    name: Live Groq Chatbot Evaluation
+    runs-on: ubuntu-latest
+    env:
+      GROQ_API_KEY: ${{ secrets[format('{0}', 'GROQ_API_KEY')] }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        if: env.GROQ_API_KEY != ''
+        run: npm ci
+
+      - name: Run Live Groq Model-Verified Chatbot Evaluation
+        if: env.GROQ_API_KEY != ''
+        run: npm run eval-chatbot

@@ -36,6 +36,9 @@ export interface Env {
   GROQ_MODEL?: string;
   ALLOWED_ORIGINS?: string;
   RATE_LIMIT_PER_MINUTE?: string;
+  DAILY_CHAT_BUDGET?: string;
+  CHAT_ENABLED?: string;
+  BUILD_SHA?: string;
 }
 
 export type AllowedEventType =
@@ -48,7 +51,8 @@ export type AllowedEventType =
   | "contact_click"
   | "chat_started"
   | "chat_message"
-  | "chat_response";
+  | "chat_response"
+  | "chat_feedback";
 
 export type AttributionSource =
   | "linkedin"
@@ -57,16 +61,10 @@ export type AttributionSource =
   | "application"
   | "direct";
 
-export interface ChatHistoryTurn {
-  role: "user" | "assistant";
-  text: string;
-}
-
 export interface ChatRequest {
   message: string;
   session_id?: string;
   chat_session_id?: string;
-  history?: ChatHistoryTurn[];
 }
 
 export interface ChatResponse {
